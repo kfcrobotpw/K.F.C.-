@@ -147,6 +147,7 @@ export default function App() {
   const [showEditPartModal, setShowEditPartModal] = useState<Part | null>(null);
   const [showPurchaseRequestModal, setShowPurchaseRequestModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('전체');
   const [adminActiveTab, setAdminActiveTab] = useState<'inventory' | 'rentals' | 'logs' | 'requests'>('inventory');
 
   // Refs for scrolling
@@ -294,12 +295,12 @@ export default function App() {
     }
   };
 
-  const handleRental = async (formData: { name: string; phone: string }) => {
+  const handleRental = async (formData: { name: string; phone: string; quantity: number }) => {
     if (!showRentalModal || !user) return;
     const { part } = showRentalModal;
 
-    if (part.availableStock <= 0) {
-      alert("재고가 없습니다.");
+    if (part.availableStock < formData.quantity) {
+      alert("잔여 재고가 부족합니다.");
       return;
     }
 
@@ -311,6 +312,7 @@ export default function App() {
         userEmail: user.email,
         userName: formData.name,
         userPhone: formData.phone,
+        quantity: formData.quantity,
         partId: part.id,
         partName: part.name,
         status: 'borrowed',
@@ -319,7 +321,7 @@ export default function App() {
 
       // Update stock
       await updateDoc(doc(db, 'parts', part.id), {
-        availableStock: increment(-1)
+        availableStock: increment(-formData.quantity)
       });
 
       setShowRentalModal(null);
@@ -338,7 +340,7 @@ export default function App() {
       });
 
       await updateDoc(doc(db, 'parts', rental.partId), {
-        availableStock: increment(1)
+        availableStock: increment(rental.quantity || 1)
       });
 
       alert("반납이 완료되었습니다.");
@@ -497,10 +499,12 @@ export default function App() {
     );
   }
 
-  const filteredParts = parts.filter(p => 
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredParts = parts.filter(p => {
+    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         p.category.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === '전체' || p.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col h-screen overflow-hidden">
@@ -603,6 +607,8 @@ export default function App() {
                   purchaseRequests={purchaseRequests}
                   searchQuery={searchQuery}
                   setSearchQuery={setSearchQuery}
+                  selectedCategory={selectedCategory}
+                  setSelectedCategory={setSelectedCategory}
                   onRental={(part: Part) => setShowRentalModal({ part })}
                   onReturn={handleReturn}
                   onRequestPurchase={() => setShowPurchaseRequestModal(true)}
@@ -728,7 +734,8 @@ export default function App() {
                   const d = new FormData(e.currentTarget);
                   handleRental({ 
                     name: d.get('name') as string, 
-                    phone: d.get('phone') as string 
+                    phone: d.get('phone') as string,
+                    quantity: parseInt(d.get('quantity') as string)
                   });
                 }}
               >
@@ -748,6 +755,18 @@ export default function App() {
                       name="phone"
                       required
                       placeholder="010-1234-5678"
+                      className="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-bold text-slate-700 bg-slate-50/50"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">빌릴 개수 (잔여: {showRentalModal.part.availableStock}개)</label>
+                    <input 
+                      name="quantity"
+                      type="number"
+                      min="1"
+                      max={showRentalModal.part.availableStock}
+                      required
+                      defaultValue="1"
                       className="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-bold text-slate-700 bg-slate-50/50"
                     />
                   </div>
@@ -939,6 +958,8 @@ function UserView({
   purchaseRequests,
   searchQuery, 
   setSearchQuery, 
+  selectedCategory,
+  setSelectedCategory,
   onRental, 
   onReturn,
   onRequestPurchase,
@@ -998,14 +1019,31 @@ function UserView({
           <h2 className="text-4xl font-black tracking-tight text-slate-900 mb-2">부품 라이브러리</h2>
           <p className="text-slate-500 font-medium">로봇 제작에 필요한 부품을 찾아보세요.</p>
         </div>
-        <div className="relative w-full lg:w-96">
-          <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-          <input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-14 pr-6 py-4 bg-white border border-slate-200 rounded-[1.25rem] outline-none shadow-sm focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 transition-all font-bold text-slate-700"
-            placeholder="부품 검색..."
-          />
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap gap-2">
+            {['전체', ...CATEGORIES].map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                  selectedCategory === cat 
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-100' 
+                  : 'bg-white text-slate-400 border border-slate-200 hover:border-blue-200 hover:text-slate-600'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+          <div className="relative w-full lg:w-96">
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-14 pr-6 py-4 bg-white border border-slate-200 rounded-[1.25rem] outline-none shadow-sm focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 transition-all font-bold text-slate-700"
+              placeholder="부품 검색..."
+            />
+          </div>
         </div>
       </div>
 
@@ -1024,7 +1062,7 @@ function UserView({
                 className="bg-white border-2 border-red-50 rounded-3xl p-6 shadow-sm flex items-center justify-between"
               >
                 <div>
-                  <h4 className="font-bold text-slate-900 mb-1">{rental.partName}</h4>
+                  <h4 className="font-bold text-slate-900 mb-1">{rental.partName} ({rental.quantity || 1}개)</h4>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                     대여일: {rental.borrowedAt?.toDate().toLocaleDateString()}
                   </p>
@@ -1045,7 +1083,9 @@ function UserView({
       <section className="space-y-6 pb-20">
         <div className="flex items-center space-x-3 px-1">
           <div className="w-2 h-6 bg-blue-600 rounded-full" />
-          <h3 className="text-xl font-black text-slate-900 tracking-tight">모든 부품</h3>
+          <h3 className="text-xl font-black text-slate-900 tracking-tight">
+            {selectedCategory === '전체' ? '모든 부품' : selectedCategory}
+          </h3>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
           {parts.map((part: Part) => (
@@ -1268,6 +1308,7 @@ function AdminView({
                   <tr className="text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100">
                     <th className="pb-6 px-2">대여자 정보</th>
                     <th className="pb-6 px-2">부품명</th>
+                    <th className="pb-6 px-2 text-center">수량</th>
                     <th className="pb-6 px-2 text-center">현황</th>
                     <th className="pb-6 px-2 text-right">일시</th>
                   </tr>
@@ -1282,6 +1323,7 @@ function AdminView({
                         </div>
                       </td>
                       <td className="py-6 px-2 font-bold text-slate-700">{r.partName}</td>
+                      <td className="py-6 px-2 text-center font-black text-slate-900">{r.quantity || 1}개</td>
                       <td className="py-6 px-2 text-center">
                         {r.status === 'borrowed' 
                           ? <span className="bg-orange-600 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-lg shadow-orange-100">대여중</span>

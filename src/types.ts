@@ -16,6 +16,7 @@ export interface Rental {
   userEmail: string;
   userName: string;
   userPhone: string;
+  quantity: number;
   partId: string;
   partName: string;
   status: 'borrowed' | 'returned';
