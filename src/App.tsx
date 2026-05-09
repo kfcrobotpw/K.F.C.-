@@ -35,7 +35,9 @@ import {
   AlertTriangle,
   ArrowRightLeft,
   Edit2,
-  Trash2
+  Trash2,
+  Camera,
+  ImageIcon
 } from 'lucide-react';
 import { auth, db, loginWithGoogle, logout } from './lib/firebase';
 import { Part, Rental, AdminLog, CATEGORIES } from './types.ts';
@@ -87,6 +89,44 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
   throw new Error(JSON.stringify(errInfo));
 }
 
+const compressImage = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 400;
+        const MAX_HEIGHT = 400;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.6));
+      };
+      img.onerror = reject;
+    };
+    reader.onerror = reject;
+  });
+};
+
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -126,25 +166,53 @@ export default function App() {
 
   // Auth State
   useEffect(() => {
+    console.log("Auth listener initializing...");
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
+      console.log("Auth state changed:", u?.email || "No user");
       setUser(u);
+      
       if (u) {
         try {
           const adminRef = doc(db, 'admins', u.uid);
-          const adminSnap = await getDoc(adminRef);
-          // Bootstrap: The developer/owner email is granted admin access by default
-          setIsAdmin(adminSnap.exists() || u.email === 'kfcrobotpw@gmail.com' || u.uid === 'HVu4W9gNPYcDWhB6FBgdGyejF2G3');
+          // Use a timeout or handle failure for admin check to not block initial load
+          const adminSnap = await getDoc(adminRef).catch(err => {
+            console.error("Admin snap fetch failed:", err);
+            return null;
+          });
+          
+          const isAdminUser = adminSnap?.exists() || 
+                             u.email === 'kfcrobotpw@gmail.com' || 
+                             u.uid === 'HVu4W9gNPYcDWhB6FBgdGyejF2G3';
+                             
+          setIsAdmin(isAdminUser);
         } catch (error) {
-          console.error("Admin check failed:", error);
+          console.error("Admin check logic failed:", error);
           setIsAdmin(u.email === 'kfcrobotpw@gmail.com' || u.uid === 'HVu4W9gNPYcDWhB6FBgdGyejF2G3');
         }
       } else {
         setIsAdmin(false);
         setIsAdminMode(false);
       }
+      
+      // Ensure loading is set to false after auth state is determined
+      setLoading(false);
+    }, (error) => {
+      console.error("Auth listener error:", error);
       setLoading(false);
     });
-    return unsubscribe;
+
+    // Fallback: if auth state doesn't change within 5 seconds, stop loading
+    const timeout = setTimeout(() => {
+      if (loading) {
+        console.warn("Auth check timed out, forcing loading to false");
+        setLoading(false);
+      }
+    }, 5000);
+
+    return () => {
+      unsubscribe();
+      clearTimeout(timeout);
+    };
   }, []);
 
   // Data Sync
@@ -262,12 +330,18 @@ export default function App() {
     }
   };
 
-  const handleAddPart = async (formData: any) => {
+  const handleAddPart = async (formData: any, imageFile: File | null) => {
     try {
+      let imageUrl = '';
+      if (imageFile) {
+        imageUrl = await compressImage(imageFile);
+      }
+
       await addDoc(collection(db, 'parts'), {
         ...formData,
         totalStock: parseInt(formData.totalStock),
-        availableStock: parseInt(formData.totalStock)
+        availableStock: parseInt(formData.totalStock),
+        imageUrl
       });
       setShowAddPartModal(false);
       alert("부품이 추가되었습니다.");
@@ -276,19 +350,25 @@ export default function App() {
     }
   };
 
-  const handleUpdatePart = async (id: string, formData: any) => {
+  const handleUpdatePart = async (id: string, formData: any, imageFile: File | null) => {
     try {
       const partRef = doc(db, 'parts', id);
       const totalStock = parseInt(formData.totalStock) || 0;
       const availableStock = parseInt(formData.availableStock) || 0;
       
-      await updateDoc(partRef, {
+      const updateData: any = {
         name: String(formData.name),
         category: String(formData.category),
         description: String(formData.description || ''),
         totalStock,
         availableStock
-      });
+      };
+
+      if (imageFile) {
+        updateData.imageUrl = await compressImage(imageFile);
+      }
+      
+      await updateDoc(partRef, updateData);
       setShowEditPartModal(null);
       alert("부품 정보가 수정되었습니다.");
     } catch (error) {
@@ -308,8 +388,23 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600" />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-6">
+        <div className="relative mb-8">
+          <div className="absolute inset-0 animate-ping rounded-full bg-blue-400/20" />
+          <div className="relative animate-spin rounded-full h-16 w-16 border-4 border-slate-200 border-t-blue-600 shadow-xl" />
+        </div>
+        <h2 className="text-xl font-black text-slate-900 mb-2 tracking-tight">K.F.C. 시스템 초기화 중</h2>
+        <p className="text-slate-500 font-medium text-sm text-center max-w-xs animate-pulse">
+          데이터를 안전하게 불러오고 있습니다.<br />잠시만 기다려 주세요.
+        </p>
+        
+        {/* Safety button if stuck for more than 5 seconds */}
+        <button 
+          onClick={() => setLoading(false)}
+          className="mt-12 text-[10px] font-black text-slate-300 uppercase tracking-widest hover:text-slate-500 transition-colors"
+        >
+          로딩이 너무 오래 걸리나요?
+        </button>
       </div>
     );
   }
@@ -573,18 +668,38 @@ export default function App() {
               </div>
               <form 
                 className="p-10 space-y-8"
-                onSubmit={(e) => {
+                onSubmit={async (e) => {
                   e.preventDefault();
                   const d = new FormData(e.currentTarget);
+                  const imageFile = (document.getElementById('edit-image') as HTMLInputElement)?.files?.[0] || null;
+                  
                   handleUpdatePart(showEditPartModal.id, {
                     name: d.get('name'),
                     category: d.get('category'),
                     totalStock: d.get('totalStock'),
                     availableStock: d.get('availableStock'),
                     description: d.get('description'),
-                  });
+                  }, imageFile);
                 }}
               >
+                <div className="flex justify-center mb-6">
+                  <div className="relative group">
+                    <div className="w-32 h-32 rounded-3xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden">
+                      {showEditPartModal.imageUrl ? (
+                        <img src={showEditPartModal.imageUrl} alt="Part" className="w-full h-full object-cover" />
+                      ) : (
+                        <Camera className="text-slate-300" size={32} />
+                      )}
+                    </div>
+                    <label 
+                      htmlFor="edit-image"
+                      className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer rounded-3xl text-white font-bold text-xs"
+                    >
+                      변경하기
+                    </label>
+                    <input id="edit-image" type="file" accept="image/*" className="hidden" />
+                  </div>
+                </div>
                 <div className="grid grid-cols-2 gap-6">
                   <div className="col-span-2">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">부품 이름</label>
@@ -630,17 +745,51 @@ export default function App() {
               </div>
               <form 
                 className="p-10 space-y-8"
-                onSubmit={(e) => {
+                onSubmit={async (e) => {
                   e.preventDefault();
                   const d = new FormData(e.currentTarget);
+                  const imageFile = (document.getElementById('add-image') as HTMLInputElement)?.files?.[0] || null;
+
                   handleAddPart({
                     name: d.get('name'),
                     category: d.get('category'),
                     totalStock: d.get('totalStock'),
                     description: d.get('description')
-                  });
+                  }, imageFile);
                 }}
               >
+                <div className="flex justify-center mb-6">
+                  <div className="relative group">
+                    <div className="w-32 h-32 rounded-3xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden" id="add-image-preview">
+                      <Camera className="text-slate-300" size={32} />
+                    </div>
+                    <label 
+                      htmlFor="add-image"
+                      className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer rounded-3xl text-white font-bold text-xs"
+                    >
+                      이미지 선택
+                    </label>
+                    <input 
+                      id="add-image" 
+                      type="file" 
+                      accept="image/*" 
+                      className="hidden" 
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = (ev) => {
+                            const preview = document.getElementById('add-image-preview');
+                            if (preview) {
+                              preview.innerHTML = `<img src="${ev.target?.result}" class="w-full h-full object-cover" />`;
+                            }
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
                 <div className="grid grid-cols-2 gap-6">
                   <div className="col-span-2">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">부품 이름</label>
@@ -746,44 +895,50 @@ function UserView({
               key={part.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all group relative overflow-hidden"
+              className="bg-white rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all group relative overflow-hidden flex flex-col"
             >
-              <div className="absolute top-6 right-6">
-                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                  part.availableStock > 0 
-                  ? 'bg-green-100 text-green-700' 
-                  : 'bg-red-100 text-red-700'
-                }`}>
-                  재고 {part.availableStock}개
-                </span>
-              </div>
-              
-              <div className="w-full aspect-[4/3] bg-slate-50 rounded-[1.5rem] mb-6 flex items-center justify-center text-slate-200 font-black uppercase tracking-[0.2em] text-xs px-4 text-center">
-                {part.name}
+              <div className="h-48 bg-slate-100 relative overflow-hidden">
+                {part.imageUrl ? (
+                  <img src={part.imageUrl} alt={part.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center text-slate-300 gap-2">
+                    <ImageIcon size={32} />
+                    <span className="text-[10px] font-black uppercase tracking-widest">{part.category}</span>
+                  </div>
+                )}
+                <div className="absolute top-4 right-4">
+                  <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${
+                    part.availableStock > 0 
+                    ? 'bg-green-100 text-green-700' 
+                    : 'bg-red-100 text-red-700'
+                  }`}>
+                    재고 {part.availableStock}개
+                  </span>
+                </div>
               </div>
 
-              <div className="space-y-4">
+              <div className="p-6 flex-1 flex flex-col space-y-4">
                 <div>
                   <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">{part.category}</p>
-                  <h3 className="text-xl font-black text-slate-900 tracking-tight group-hover:text-blue-600 transition-colors">
+                  <h3 className="text-xl font-black text-slate-900 tracking-tight group-hover:text-blue-600 transition-colors uppercase line-clamp-1">
                     {part.name}
                   </h3>
+                  <p className="text-sm text-slate-500 font-medium mt-2 line-clamp-2 min-h-[40px]">
+                    {part.description || '부품에 대한 상세 설명이 없습니다.'}
+                  </p>
                 </div>
-                
-                <p className="text-sm text-slate-500 font-medium line-clamp-2 min-h-[40px]">
-                  {part.description || '부품에 대한 상세 설명이 없습니다.'}
-                </p>
 
                 <button
                   onClick={() => onRental(part)}
                   disabled={part.availableStock <= 0}
-                  className={`w-full py-4 rounded-2xl font-black transition-all text-xs uppercase tracking-widest ${
+                  className={`w-full py-4 rounded-2xl font-black transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2 ${
                     part.availableStock > 0 
-                    ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-100' 
+                    ? 'bg-slate-900 text-white hover:bg-blue-600 shadow-lg shadow-slate-200' 
                     : 'bg-slate-100 text-slate-300 cursor-not-allowed shadow-none'
                   }`}
                 >
-                  {part.availableStock > 0 ? '대여하기' : '대여 불가 (품절)'}
+                  <ArrowRightLeft size={14} />
+                  <span>{part.availableStock > 0 ? '대여하기' : '대여 불가 (품절)'}</span>
                 </button>
               </div>
             </motion.div>
@@ -866,7 +1021,21 @@ function AdminView({
                 <tbody className="divide-y divide-slate-50">
                   {parts.map((p: Part) => (
                     <tr key={p.id} className="group hover:bg-slate-50/50 transition-colors">
-                      <td className="py-6 px-2 font-black text-slate-900">{p.name}</td>
+                      <td className="py-6 px-2">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-slate-50 overflow-hidden border border-slate-100 flex items-center justify-center shrink-0">
+                            {p.imageUrl ? (
+                              <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <ImageIcon size={20} className="text-slate-200" />
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-black text-slate-900 uppercase truncate">{p.name}</p>
+                            <p className="text-[10px] font-medium text-slate-400 truncate max-w-[150px]">{p.description || '설명 없음'}</p>
+                          </div>
+                        </div>
+                      </td>
                       <td className="py-6 px-2">
                         <span className="px-3 py-1 bg-blue-50 text-blue-600 text-[10px] font-black rounded-full uppercase tracking-widest border border-blue-100">
                           {p.category}

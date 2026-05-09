@@ -7,6 +7,7 @@ export interface Part {
   totalStock: number;
   availableStock: number;
   description?: string;
+  imageUrl?: string;
 }
 
 export interface Rental {
