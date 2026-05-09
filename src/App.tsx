@@ -658,16 +658,16 @@ export default function App() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-[2rem] shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200"
+              className="bg-white rounded-[2rem] shadow-2xl max-w-md w-full overflow-hidden border border-slate-200"
             >
-              <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-blue-600 text-white">
+              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-blue-600 text-white">
                 <h3 className="text-xl font-black tracking-tight">부품 정보 수정</h3>
                 <button onClick={() => setShowEditPartModal(null)} className="p-2 hover:bg-white/10 rounded-xl transition-all">
                   <X size={24} />
                 </button>
               </div>
               <form 
-                className="p-10 space-y-8"
+                className="p-8 space-y-6"
                 onSubmit={async (e) => {
                   e.preventDefault();
                   const d = new FormData(e.currentTarget);
@@ -735,16 +735,16 @@ export default function App() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-[2rem] shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200"
+              className="bg-white rounded-[2rem] shadow-2xl max-w-md w-full overflow-hidden border border-slate-200"
             >
-              <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-900 text-white">
+              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-900 text-white">
                 <h3 className="text-xl font-black tracking-tight">새 부품 등록</h3>
                 <button onClick={() => setShowAddPartModal(false)} className="p-2 hover:bg-white/10 rounded-xl transition-all">
                   <X size={24} />
                 </button>
               </div>
               <form 
-                className="p-10 space-y-8"
+                className="p-8 space-y-6"
                 onSubmit={async (e) => {
                   e.preventDefault();
                   const d = new FormData(e.currentTarget);
