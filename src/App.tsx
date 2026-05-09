@@ -37,10 +37,15 @@ import {
   Edit2,
   Trash2,
   Camera,
-  ImageIcon
+  ImageIcon,
+  ShoppingBag,
+  ExternalLink,
+  CheckCircle2,
+  XCircle,
+  Clock
 } from 'lucide-react';
 import { auth, db, loginWithGoogle, logout } from './lib/firebase';
-import { Part, Rental, AdminLog, CATEGORIES } from './types.ts';
+import { Part, Rental, AdminLog, CATEGORIES, PurchaseRequest } from './types.ts';
 
 enum OperationType {
   CREATE = 'create',
@@ -135,12 +140,14 @@ export default function App() {
   const [parts, setParts] = useState<Part[]>([]);
   const [rentals, setRentals] = useState<Rental[]>([]);
   const [adminLogs, setAdminLogs] = useState<AdminLog[]>([]);
+  const [purchaseRequests, setPurchaseRequests] = useState<PurchaseRequest[]>([]);
   const [showAdminPopup, setShowAdminPopup] = useState(false);
   const [showRentalModal, setShowRentalModal] = useState<{ part: Part } | null>(null);
   const [showAddPartModal, setShowAddPartModal] = useState(false);
   const [showEditPartModal, setShowEditPartModal] = useState<Part | null>(null);
+  const [showPurchaseRequestModal, setShowPurchaseRequestModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [adminActiveTab, setAdminActiveTab] = useState<'inventory' | 'rentals' | 'logs'>('inventory');
+  const [adminActiveTab, setAdminActiveTab] = useState<'inventory' | 'rentals' | 'logs' | 'requests'>('inventory');
 
   // Refs for scrolling
   const rentalsRef = useRef<HTMLDivElement>(null);
@@ -235,6 +242,16 @@ export default function App() {
       handleFirestoreError(error, OperationType.LIST, 'rentals');
     });
 
+    const requestsQuery = isAdminMode && isAdmin
+      ? query(collection(db, 'purchase_requests'), orderBy('createdAt', 'desc'))
+      : query(collection(db, 'purchase_requests'), where('userId', '==', user.uid), orderBy('createdAt', 'desc'));
+
+    const requestsUnsubscribe = onSnapshot(requestsQuery, (snapshot) => {
+      setPurchaseRequests(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as PurchaseRequest)));
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'purchase_requests');
+    });
+
     let logsUnsubscribe = () => {};
     if (isAdminMode && isAdmin) {
       const logsQuery = query(collection(db, 'admin_logs'), orderBy('timestamp', 'desc'));
@@ -248,6 +265,7 @@ export default function App() {
     return () => {
       partsUnsubscribe();
       rentalsUnsubscribe();
+      requestsUnsubscribe();
       logsUnsubscribe();
     };
   }, [user, isAdminMode, isAdmin]);
@@ -383,6 +401,44 @@ export default function App() {
       alert("부품이 삭제되었습니다.");
     } catch (error) {
       handleFirestoreError(error, OperationType.DELETE, `parts/${id}`);
+    }
+  };
+
+  const handleRequestPurchase = async (formData: any) => {
+    if (!user) return;
+    try {
+      await addDoc(collection(db, 'purchase_requests'), {
+        userId: user.uid,
+        userEmail: user.email,
+        itemName: formData.itemName,
+        link: formData.link,
+        price: formData.price,
+        reason: formData.reason,
+        status: 'pending',
+        createdAt: serverTimestamp()
+      });
+      setShowPurchaseRequestModal(false);
+      alert("구매 요청이 전송되었습니다.");
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, 'purchase_requests');
+    }
+  };
+
+  const handleUpdatePurchaseStatus = async (requestId: string, status: 'approved' | 'rejected') => {
+    try {
+      await updateDoc(doc(db, 'purchase_requests', requestId), { status });
+      alert(`상태가 ${status === 'approved' ? '승인' : '거절'}됨으로 변경되었습니다.`);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `purchase_requests/${requestId}`);
+    }
+  };
+
+  const handleDeletePurchaseRequest = async (id: string) => {
+    if (!window.confirm("정말로 이 요청을 삭제하시겠습니까?")) return;
+    try {
+      await deleteDoc(doc(db, 'purchase_requests', id));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `purchase_requests/${id}`);
     }
   };
 
@@ -524,11 +580,14 @@ export default function App() {
                   parts={parts} 
                   rentals={rentals} 
                   adminLogs={adminLogs}
+                  purchaseRequests={purchaseRequests}
                   activeTab={adminActiveTab}
                   setActiveTab={setAdminActiveTab}
                   onAddPart={() => setShowAddPartModal(true)}
                   onEditPart={(part: Part) => setShowEditPartModal(part)}
                   onDeletePart={handleDeletePart}
+                  onUpdatePurchaseStatus={handleUpdatePurchaseStatus}
+                  onDeletePurchaseRequest={handleDeletePurchaseRequest}
                 />
               </motion.div>
             ) : (
@@ -541,10 +600,12 @@ export default function App() {
                 <UserView 
                   parts={filteredParts}
                   rentals={rentals}
+                  purchaseRequests={purchaseRequests}
                   searchQuery={searchQuery}
                   setSearchQuery={setSearchQuery}
                   onRental={(part: Part) => setShowRentalModal({ part })}
                   onReturn={handleReturn}
+                  onRequestPurchase={() => setShowPurchaseRequestModal(true)}
                   rentalsRef={rentalsRef}
                   libraryRef={libraryRef}
                 />
@@ -589,6 +650,58 @@ export default function App() {
               <div className="bg-slate-50 px-10 py-4 border-t border-slate-100 text-[10px] text-slate-400 font-bold tracking-widest text-center uppercase">
                 보안 프로토콜 활성화됨 • 세션 ID: KFC-{user.uid.slice(0, 5)}
               </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Purchase Request Modal */}
+        {showPurchaseRequestModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-[2rem] shadow-2xl max-w-md w-full overflow-hidden border border-slate-200"
+            >
+              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-blue-600 text-white">
+                <h3 className="text-xl font-black tracking-tight">구매 요청 작성</h3>
+                <button onClick={() => setShowPurchaseRequestModal(false)} className="p-2 hover:bg-white/10 rounded-xl transition-all">
+                  <X size={24} />
+                </button>
+              </div>
+              <form 
+                className="p-8 space-y-6"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const d = new FormData(e.currentTarget);
+                  handleRequestPurchase({
+                    itemName: d.get('itemName'),
+                    link: d.get('link'),
+                    price: d.get('price'),
+                    reason: d.get('reason'),
+                  });
+                }}
+              >
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">요청 품목 이름</label>
+                    <input name="itemName" required placeholder="예: LEGO Spike Prime 엔진" className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 font-bold" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">구매 예정 사이트 (링크)</label>
+                    <input name="link" placeholder="https://..." className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 font-bold" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">예상 가격</label>
+                    <input name="price" placeholder="약 50,000원" className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 font-bold" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">요청 사유</label>
+                    <textarea name="reason" placeholder="로봇 팔 관절 보완을 위해 필요합니다." className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 h-24 font-medium" />
+                  </div>
+                </div>
+                <button type="submit" className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg hover:bg-blue-700 transition-all uppercase tracking-widest">요청 제출하기</button>
+              </form>
             </motion.div>
           </div>
         )}
@@ -823,10 +936,12 @@ export default function App() {
 function UserView({ 
   parts, 
   rentals, 
+  purchaseRequests,
   searchQuery, 
   setSearchQuery, 
   onRental, 
   onReturn,
+  onRequestPurchase,
   rentalsRef,
   libraryRef
 }: any) {
@@ -834,6 +949,49 @@ function UserView({
 
   return (
     <div className="space-y-12">
+      {/* Welcome Card & Purchase Link (Compact Version) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="bg-slate-900 rounded-[1.5rem] p-6 text-white relative overflow-hidden shadow-xl flex items-center justify-between">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-red-600 rounded-full mix-blend-multiply filter blur-3xl opacity-10 -translate-y-1/2 translate-x-1/2" />
+          <div className="relative z-10">
+            <h2 className="text-lg font-black tracking-tight">필요한 부품이 없나요?</h2>
+            <p className="text-slate-400 font-medium text-[11px] mt-1">구매 요청을 통해 부품을 건의해보세요.</p>
+          </div>
+          <button 
+            onClick={onRequestPurchase}
+            className="relative z-10 flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white px-4 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 whitespace-nowrap shadow-lg shadow-red-900/20"
+          >
+            <ShoppingBag size={14} />
+            요청하기
+          </button>
+        </div>
+        
+        <div className="bg-white rounded-[1.5rem] p-6 border border-slate-200 shadow-sm flex items-center justify-between">
+          <div className="flex-1">
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">나의 최근 요청</p>
+            <div className="flex gap-4 overflow-x-auto no-scrollbar pb-1">
+              {purchaseRequests.slice(0, 2).map((req: PurchaseRequest) => (
+                <div key={req.id} className="flex items-center gap-2 shrink-0">
+                  <span className="font-bold text-slate-700 text-xs truncate max-w-[80px]">{req.itemName}</span>
+                  <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase ${
+                    req.status === 'pending' ? 'bg-orange-50 text-orange-600' :
+                    req.status === 'approved' ? 'bg-green-50 text-green-600' :
+                    'bg-red-50 text-red-600'
+                  }`}>
+                    {req.status === 'pending' ? '대기' : req.status === 'approved' ? '승인' : '거절'}
+                  </span>
+                </div>
+              ))}
+              {purchaseRequests.length === 0 && <p className="text-[10px] text-slate-300 font-medium">내역 없음</p>}
+            </div>
+          </div>
+          <div className="text-right ml-4">
+            <p className="text-[18px] font-black text-slate-900 leading-none">{purchaseRequests.length}</p>
+            <p className="text-[8px] font-black text-blue-600 uppercase tracking-widest mt-1">총 요청</p>
+          </div>
+        </div>
+      </div>
+
       {/* Search Header */}
       <div ref={libraryRef} className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
         <div>
@@ -959,9 +1117,12 @@ function AdminView({
   parts, 
   rentals, 
   adminLogs, 
+  purchaseRequests,
   onAddPart,
   onEditPart,
   onDeletePart,
+  onUpdatePurchaseStatus,
+  onDeletePurchaseRequest,
   activeTab,
   setActiveTab
 }: any) {
@@ -976,6 +1137,7 @@ function AdminView({
           {[
             { id: 'inventory', label: '재고 관리', icon: Package },
             { id: 'rentals', label: '대여 기록', icon: History },
+            { id: 'requests', label: '구매 요청', icon: ShoppingBag },
             { id: 'logs', label: '보안 로그', icon: Users },
           ].map((tab) => (
             <button
@@ -1116,6 +1278,86 @@ function AdminView({
                   ))}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'requests' && (
+          <div className="space-y-10">
+            <h3 className="text-2xl font-black text-slate-900 tracking-tight">구매 요청 리스트</h3>
+            <div className="grid grid-cols-1 gap-6">
+              {purchaseRequests.map((req: PurchaseRequest) => (
+                <div key={req.id} className="bg-slate-50 rounded-[2rem] p-8 border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-3">
+                      <h4 className="text-xl font-black text-slate-900">{req.itemName}</h4>
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                        req.status === 'approved' ? 'bg-green-100 text-green-700' :
+                        req.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                        'bg-orange-100 text-orange-700'
+                      }`}>
+                        {req.status === 'pending' ? '승인 대기' : req.status === 'approved' ? '승인됨' : '거절됨'}
+                      </span>
+                    </div>
+                    <p className="text-sm text-slate-500 font-medium">{req.reason || '사유 없음'}</p>
+                    <div className="flex flex-wrap items-center gap-4 text-xs font-bold text-slate-400 mt-4">
+                      <div className="flex items-center gap-1">
+                        <Clock size={12} />
+                        <span>{req.createdAt?.toDate().toLocaleDateString()}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <UserIcon size={12} />
+                        <span>{req.userEmail}</span>
+                      </div>
+                      <span className="text-blue-600 font-black">{req.price || '가격 정보 없음'}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {req.link && (
+                      <a 
+                        href={req.link} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="p-4 bg-white text-slate-900 hover:text-blue-600 rounded-2xl shadow-sm border border-slate-200 transition-all hover:shadow-md"
+                        title="링크 열기"
+                      >
+                        <ExternalLink size={20} />
+                      </a>
+                    )}
+                    {req.status === 'pending' && (
+                      <>
+                        <button 
+                          onClick={() => onUpdatePurchaseStatus(req.id, 'approved')}
+                          className="p-4 bg-green-600 text-white rounded-2xl shadow-lg shadow-green-100 hover:bg-green-700 transition-all"
+                          title="승인"
+                        >
+                          <CheckCircle2 size={20} />
+                        </button>
+                        <button 
+                          onClick={() => onUpdatePurchaseStatus(req.id, 'rejected')}
+                          className="p-4 bg-red-600 text-white rounded-2xl shadow-lg shadow-red-100 hover:bg-red-700 transition-all"
+                          title="거절"
+                        >
+                          <XCircle size={20} />
+                        </button>
+                      </>
+                    )}
+                    <button 
+                      onClick={() => onDeletePurchaseRequest(req.id)}
+                      className="p-4 bg-white text-slate-300 hover:text-red-600 rounded-2xl shadow-sm border border-slate-200 transition-all"
+                      title="삭제"
+                    >
+                      <Trash2 size={20} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {purchaseRequests.length === 0 && (
+                <div className="py-20 text-center">
+                  <ShoppingBag size={48} className="mx-auto text-slate-100 mb-6" />
+                  <p className="text-slate-300 font-black uppercase tracking-[0.2em] text-xs">등록된 구매 요청이 없습니다.</p>
+                </div>
+              )}
             </div>
           </div>
         )}

@@ -42,6 +42,22 @@
         "timestamp": { "type": "string", "format": "date-time" }
       },
       "required": ["userId", "userEmail", "timestamp"]
+    },
+    "PurchaseRequest": {
+      "title": "Purchase Request",
+      "description": "User request for new LEGO parts or equipment.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "UID of the requester" },
+        "userEmail": { "type": "string", "description": "Email of the requester" },
+        "itemName": { "type": "string", "description": "Name of requested item" },
+        "link": { "type": "string", "description": "URL link to the item" },
+        "price": { "type": "string", "description": "Price info" },
+        "reason": { "type": "string", "description": "Why it is needed" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "userEmail", "itemName", "status", "createdAt"]
     }
   },
   "firestore": {
@@ -56,6 +72,10 @@
     "admin_logs": {
       "schema": "AdminLog",
       "description": "Logs of admin mode access attempts."
+    },
+    "purchase_requests": {
+      "schema": "PurchaseRequest",
+      "description": "Collection of purchase requests from users."
     }
   }
 }

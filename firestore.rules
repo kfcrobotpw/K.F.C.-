@@ -84,6 +84,25 @@ service cloud.firestore {
              data.timestamp is timestamp;
     }
 
+    // --- Purchase Requests Collection ---
+    match /purchase_requests/{requestId} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn() && 
+                    incoming().userId == request.auth.uid &&
+                    isValidPurchaseRequest(incoming());
+      allow update: if isAdmin() && 
+                    incoming().diff(existing()).affectedKeys().hasOnly(['status']) &&
+                    incoming().status in ['pending', 'approved', 'rejected'];
+      allow delete: if isAdmin();
+    }
+
+    function isValidPurchaseRequest(data) {
+      return data.userId == request.auth.uid &&
+             data.itemName is string && data.itemName.size() <= 300 &&
+             data.status == 'pending' &&
+             data.createdAt is timestamp;
+    }
+
     // --- Admins Collection (Restricted) ---
     match /admins/{uid} {
       allow read: if isSignedIn(); // Allow users to check if they are admin

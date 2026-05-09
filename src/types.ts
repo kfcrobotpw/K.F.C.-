@@ -31,6 +31,18 @@ export interface AdminLog {
   timestamp: Timestamp;
 }
 
+export interface PurchaseRequest {
+  id: string;
+  userId: string;
+  userEmail: string;
+  itemName: string;
+  link: string;
+  price: string;
+  reason: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: Timestamp;
+}
+
 export const CATEGORIES = [
   '센서 (Sensors)',
   '모터 (Motors)',
