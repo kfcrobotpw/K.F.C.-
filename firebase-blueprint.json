@@ -1,0 +1,61 @@
+{
+  "entities": {
+    "Part": {
+      "title": "LEGO Part",
+      "description": "A specific type of LEGO part available for rent.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the part" },
+        "category": { "type": "string", "description": "Category (e.g., Sensory, Motor, Beam)" },
+        "totalStock": { "type": "integer", "description": "Total quantity owned" },
+        "availableStock": { "type": "integer", "description": "Current available quantity" },
+        "description": { "type": "string", "description": "Brief description" },
+        "imageUrl": { "type": "string", "description": "Optional image URL" }
+      },
+      "required": ["name", "category", "totalStock", "availableStock"]
+    },
+    "Rental": {
+      "title": "Rental Record",
+      "description": "Record of a part being borrowed by a user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "UID of the borrower" },
+        "userName": { "type": "string", "description": "Actual name entered by user" },
+        "userPhone": { "type": "string", "description": "Phone number entered by user" },
+        "userEmail": { "type": "string", "description": "Google email of the user" },
+        "partId": { "type": "string", "description": "ID of the part borrowed" },
+        "partName": { "type": "string", "description": "Name of the part at time of rental" },
+        "status": { "type": "string", "enum": ["borrowed", "returned"] },
+        "borrowedAt": { "type": "string", "format": "date-time" },
+        "returnedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "userName", "userPhone", "partId", "status", "borrowedAt"]
+    },
+    "AdminLog": {
+      "title": "Admin Access Log",
+      "description": "Logs when someone clicks the admin mode button.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "UID of the user" },
+        "userEmail": { "type": "string", "description": "Email of the user" },
+        "displayName": { "type": "string", "description": "Google display name" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "userEmail", "timestamp"]
+    }
+  },
+  "firestore": {
+    "parts": {
+      "schema": "Part",
+      "description": "Collection of all LEGO parts."
+    },
+    "rentals": {
+      "schema": "Rental",
+      "description": "Collection of all rental transactions."
+    },
+    "admin_logs": {
+      "schema": "AdminLog",
+      "description": "Logs of admin mode access attempts."
+    }
+  }
+}

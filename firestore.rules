@@ -1,0 +1,93 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'kfcrobotpw@gmail.com' ||
+        request.auth.uid == 'HVu4W9gNPYcDWhB6FBgdGyejF2G3' ||
+        (request.auth.token.get('email_verified', false) == true && exists(/databases/$(database)/documents/admins/$(request.auth.uid)))
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Parts Collection ---
+    match /parts/{partId} {
+      allow read: if isSignedIn();
+      allow create: if isAdmin() && isValidPart(incoming());
+      allow update: if (isAdmin() && isValidPart(incoming())) || (
+        isSignedIn() && 
+        incoming().diff(existing()).affectedKeys().hasOnly(['availableStock']) &&
+        incoming().availableStock is number && 
+        incoming().availableStock >= 0
+      );
+      allow delete: if isAdmin();
+    }
+
+    function isValidPart(data) {
+      return data.get('name', '') is string && 
+             data.get('category', '') is string &&
+             (data.get('totalStock', 0) is number || data.get('totalStock', '0') is string) &&
+             (data.get('availableStock', 0) is number || data.get('availableStock', '0') is string);
+    }
+
+    // --- Rentals Collection ---
+    match /rentals/{rentalId} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn() && 
+                    incoming().userId == request.auth.uid &&
+                    isValidRental(incoming());
+      allow update: if (isAdmin() || (isSignedIn() && existing().userId == request.auth.uid)) &&
+                    incoming().userId == existing().userId &&
+                    incoming().diff(existing()).affectedKeys().hasOnly(['status', 'returnedAt']) &&
+                    isValidRental(incoming());
+    }
+
+    function isValidRental(data) {
+      return data.userId is string &&
+             data.status in ['borrowed', 'returned'] &&
+             (data.borrowedAt == null || data.borrowedAt is timestamp) &&
+             (data.status == 'returned' ? data.returnedAt is timestamp : true);
+    }
+
+    // --- Admin Logs Collection ---
+    match /admin_logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isSignedIn() && 
+                    incoming().userId == request.auth.uid &&
+                    isValidAdminLog(incoming());
+    }
+
+    function isValidAdminLog(data) {
+      return data.keys().hasAll(['userId', 'userEmail', 'displayName', 'timestamp']) &&
+             data.userId == request.auth.uid &&
+             data.timestamp is timestamp;
+    }
+
+    // --- Admins Collection (Restricted) ---
+    match /admins/{uid} {
+      allow read: if isSignedIn(); // Allow users to check if they are admin
+      allow write: if false; // Managed manually or via console
+    }
+  }
+}
