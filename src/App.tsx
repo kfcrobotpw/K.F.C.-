@@ -709,7 +709,7 @@ export default function App() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white w-[480px] rounded-[2rem] shadow-2xl overflow-hidden border border-slate-200"
+              className="bg-white w-[400px] rounded-[2rem] shadow-2xl overflow-hidden border border-slate-200"
             >
               <div className="p-10 flex flex-col items-center text-center">
                 <div className="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-4xl mb-8 shadow-inner shadow-red-200/50">⚠️</div>
@@ -745,7 +745,7 @@ export default function App() {
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="bg-white max-w-lg w-full rounded-[2.5rem] shadow-2xl overflow-hidden"
+              className="bg-white max-w-sm w-full rounded-[2.5rem] shadow-2xl overflow-hidden"
             >
               <div className="p-10 space-y-8">
                 <div className="flex items-center gap-4">
@@ -801,7 +801,7 @@ export default function App() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-[2rem] shadow-2xl max-w-md w-full overflow-hidden border border-slate-200"
+              className="bg-white rounded-[2rem] shadow-2xl max-w-sm w-full overflow-hidden border border-slate-200"
             >
               <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-blue-600 text-white">
                 <h3 className="text-xl font-black tracking-tight">구매 요청 작성</h3>
@@ -853,7 +853,7 @@ export default function App() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-[2rem] shadow-2xl max-w-md w-full overflow-hidden border border-slate-200"
+              className="bg-white rounded-[2rem] shadow-2xl max-w-sm w-full overflow-hidden border border-slate-200"
             >
               <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-blue-600 text-white">
                 <h3 className="text-xl font-black tracking-tight">대여: {showRentalModal.part.name}</h3>
@@ -924,7 +924,7 @@ export default function App() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-[2rem] shadow-2xl max-w-md w-full overflow-hidden border border-slate-200"
+              className="bg-white rounded-[2rem] shadow-2xl max-w-sm w-full overflow-hidden border border-slate-200"
             >
               <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-blue-600 text-white">
                 <h3 className="text-xl font-black tracking-tight">부품 정보 수정</h3>
@@ -1001,7 +1001,7 @@ export default function App() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-[2rem] shadow-2xl max-w-md w-full overflow-hidden border border-slate-200"
+              className="bg-white rounded-[2rem] shadow-2xl max-w-sm w-full overflow-hidden border border-slate-200"
             >
               <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-900 text-white">
                 <h3 className="text-xl font-black tracking-tight">새 부품 등록</h3>
@@ -1598,7 +1598,7 @@ function AdminView({
                     initial={{ scale: 0.95, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.95, opacity: 0 }}
-                    className="bg-white rounded-[2rem] shadow-2xl max-w-md w-full overflow-hidden border border-slate-200"
+                    className="bg-white rounded-[2rem] shadow-2xl max-w-sm w-full overflow-hidden border border-slate-200"
                   >
                     <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-orange-500 text-white">
                       <h3 className="text-xl font-black tracking-tight">재입고 소식 추가</h3>
