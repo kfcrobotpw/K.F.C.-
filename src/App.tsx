@@ -711,10 +711,10 @@ export default function App() {
               exit={{ scale: 0.95, opacity: 0 }}
               className="bg-white w-[400px] rounded-[2rem] shadow-2xl overflow-hidden border border-slate-200"
             >
-              <div className="p-10 flex flex-col items-center text-center">
-                <div className="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-4xl mb-8 shadow-inner shadow-red-200/50">⚠️</div>
+              <div className="p-6 flex flex-col items-center text-center">
+                <div className="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-4xl mb-4 shadow-inner shadow-red-200/50">⚠️</div>
                 <h3 className="text-2xl font-black text-slate-900 mb-4 tracking-tight">관리자 접근 보안</h3>
-                <p className="text-slate-600 leading-relaxed mb-10 text-sm">
+                <p className="text-slate-600 leading-relaxed mb-6 text-sm">
                   관리자 버튼은 실제 관리자만 누를 수 있습니다.<br />
                   <span className="font-bold text-red-600 underline underline-offset-4 decoration-2">접속 시 계정 정보({user.email})가 시스템에 전송됩니다.</span>
                 </p>
@@ -733,7 +733,7 @@ export default function App() {
                   </button>
                 </div>
               </div>
-              <div className="bg-slate-50 px-10 py-4 border-t border-slate-100 text-[10px] text-slate-400 font-bold tracking-widest text-center uppercase">
+              <div className="bg-slate-50 px-6 py-3 border-t border-slate-100 text-[10px] text-slate-400 font-bold tracking-widest text-center uppercase">
                 보안 프로토콜 활성화됨 • 세션 ID: KFC-{user.uid.slice(0, 5)}
               </div>
             </motion.div>
@@ -747,7 +747,7 @@ export default function App() {
               animate={{ scale: 1, opacity: 1 }}
               className="bg-white max-w-sm w-full rounded-[2.5rem] shadow-2xl overflow-hidden"
             >
-              <div className="p-10 space-y-8">
+              <div className="p-6 space-y-4">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-black shadow-lg shadow-blue-200">?</div>
                   <div>
@@ -756,7 +756,7 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-3">
                   <div className="flex gap-4 items-start">
                     <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-black shrink-0">1</div>
                     <div>
@@ -785,7 +785,7 @@ export default function App() {
                     localStorage.setItem('kfc_tutorial_seen', 'true');
                     setShowTutorial(false);
                   }}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-5 rounded-2xl font-black transition-all shadow-xl shadow-blue-100 uppercase tracking-widest"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-2xl font-black transition-all shadow-xl shadow-blue-100 uppercase tracking-widest"
                 >
                   시스템 시작하기
                 </button>
@@ -810,7 +810,7 @@ export default function App() {
                 </button>
               </div>
               <form 
-                className="p-8 space-y-6"
+                className="p-5 space-y-3"
                 onSubmit={(e) => {
                   e.preventDefault();
                   const d = new FormData(e.currentTarget);
@@ -822,7 +822,7 @@ export default function App() {
                   });
                 }}
               >
-                <div className="space-y-4">
+                <div className="space-y-2">
                   <div>
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">요청 품목 이름</label>
                     <input name="itemName" required placeholder="예: LEGO Spike Prime 엔진" className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 font-bold" />
@@ -840,7 +840,7 @@ export default function App() {
                     <textarea name="reason" placeholder="로봇 팔 관절 보완을 위해 필요합니다." className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 h-24 font-medium" />
                   </div>
                 </div>
-                <button type="submit" className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg hover:bg-blue-700 transition-all uppercase tracking-widest">요청 제출하기</button>
+                <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded-2xl font-black shadow-lg hover:bg-blue-700 transition-all uppercase tracking-widest">요청 제출하기</button>
               </form>
             </motion.div>
           </div>
@@ -855,14 +855,14 @@ export default function App() {
               exit={{ scale: 0.95, opacity: 0 }}
               className="bg-white rounded-[2rem] shadow-2xl max-w-sm w-full overflow-hidden border border-slate-200"
             >
-              <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-blue-600 text-white">
+              <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-blue-600 text-white">
                 <h3 className="text-xl font-black tracking-tight">대여: {showRentalModal.part.name}</h3>
                 <button onClick={() => setShowRentalModal(null)} className="p-2 hover:bg-white/10 rounded-xl transition-all">
                   <X size={24} />
                 </button>
               </div>
               <form 
-                className="p-10"
+                className="p-6"
                 onSubmit={(e) => {
                   e.preventDefault();
                   const d = new FormData(e.currentTarget);
@@ -873,14 +873,14 @@ export default function App() {
                   });
                 }}
               >
-                <div className="space-y-6">
+                <div className="space-y-3">
                   <div>
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">성함</label>
                     <input 
                       name="name"
                       required
                       placeholder="예시: 홍길동"
-                      className="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-bold text-slate-700 bg-slate-50/50"
+                      className="w-full px-5 py-3 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-bold text-slate-700 bg-slate-50/50"
                     />
                   </div>
                   <div>
@@ -889,7 +889,7 @@ export default function App() {
                       name="phone"
                       required
                       placeholder="010-1234-5678"
-                      className="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-bold text-slate-700 bg-slate-50/50"
+                      className="w-full px-5 py-3 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-bold text-slate-700 bg-slate-50/50"
                     />
                   </div>
                   <div>
@@ -901,14 +901,14 @@ export default function App() {
                       max={showRentalModal.part.availableStock}
                       required
                       defaultValue="1"
-                      className="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-bold text-slate-700 bg-slate-50/50"
+                      className="w-full px-5 py-3 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-bold text-slate-700 bg-slate-50/50"
                     />
                   </div>
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full mt-10 bg-blue-600 text-white py-5 rounded-2xl font-black shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all uppercase tracking-widest"
+                  className="w-full mt-6 bg-blue-600 text-white py-3 rounded-2xl font-black shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all uppercase tracking-widest"
                 >
                   대여 신청
                 </button>
@@ -933,7 +933,7 @@ export default function App() {
                 </button>
               </div>
               <form 
-                className="p-8 space-y-6"
+                className="p-5 space-y-3"
                 onSubmit={async (e) => {
                   e.preventDefault();
                   const d = new FormData(e.currentTarget);
@@ -948,7 +948,7 @@ export default function App() {
                   }, imageFile);
                 }}
               >
-                <div className="flex justify-center mb-6">
+                <div className="flex justify-center mb-4">
                   <div className="relative group">
                     <div className="w-32 h-32 rounded-3xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden">
                       {showEditPartModal.imageUrl ? (
@@ -966,31 +966,31 @@ export default function App() {
                     <input id="edit-image" type="file" accept="image/*" className="hidden" />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-2 gap-3">
                   <div className="col-span-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">부품 이름</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">부품 이름</label>
                     <input name="name" required defaultValue={showEditPartModal.name} className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 font-bold" />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">카테고리</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">카테고리</label>
                     <select name="category" defaultValue={showEditPartModal.category} className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 font-bold">
                       {CATEGORIES.map(c => <option key={c}>{c}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">전체 재고수량</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">전체 재고수량</label>
                     <input name="totalStock" type="number" required defaultValue={showEditPartModal.totalStock} className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 font-bold" />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">잔여 재고수량</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">잔여 재고수량</label>
                     <input name="availableStock" type="number" required defaultValue={showEditPartModal.availableStock} className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 font-bold" />
                   </div>
                   <div className="col-span-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">상세 설명 / 스펙</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">상세 설명 / 스펙</label>
                     <textarea name="description" defaultValue={showEditPartModal.description} className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 h-28 font-medium" />
                   </div>
                 </div>
-                <button type="submit" className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-lg hover:bg-blue-700 transition-all uppercase tracking-widest">저장하기</button>
+                <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded-2xl font-black shadow-lg hover:bg-blue-700 transition-all uppercase tracking-widest">저장하기</button>
               </form>
             </motion.div>
           </div>
@@ -1010,7 +1010,7 @@ export default function App() {
                 </button>
               </div>
               <form 
-                className="p-8 space-y-6"
+                className="p-5 space-y-3"
                 onSubmit={async (e) => {
                   e.preventDefault();
                   const d = new FormData(e.currentTarget);
@@ -1024,7 +1024,7 @@ export default function App() {
                   }, imageFile);
                 }}
               >
-                <div className="flex justify-center mb-6">
+                <div className="flex justify-center mb-4">
                   <div className="relative group">
                     <div className="w-32 h-32 rounded-3xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden" id="add-image-preview">
                       <Camera className="text-slate-300" size={32} />
@@ -1056,27 +1056,27 @@ export default function App() {
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-2 gap-3">
                   <div className="col-span-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">부품 이름</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">부품 이름</label>
                     <input name="name" required className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 font-bold" />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">카테고리</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">카테고리</label>
                     <select name="category" className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 font-bold">
                       {CATEGORIES.map(c => <option key={c}>{c}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">초기 재고</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">초기 재고</label>
                     <input name="totalStock" type="number" required defaultValue="1" className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 font-bold" />
                   </div>
                   <div className="col-span-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">상세 설명 / 스펙</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">상세 설명 / 스펙</label>
                     <textarea name="description" className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 h-28 font-medium" />
                   </div>
                 </div>
-                <button type="submit" className="w-full bg-slate-900 text-white py-5 rounded-2xl font-black shadow-lg hover:bg-slate-800 transition-all uppercase tracking-widest">부품 등록 완료</button>
+                <button type="submit" className="w-full bg-slate-900 text-white py-3 rounded-2xl font-black shadow-lg hover:bg-slate-800 transition-all uppercase tracking-widest">부품 등록 완료</button>
               </form>
             </motion.div>
           </div>
@@ -1607,7 +1607,7 @@ function AdminView({
                       </button>
                     </div>
                     <form 
-                      className="p-8 space-y-6"
+                      className="p-5 space-y-3"
                       onSubmit={async (e) => {
                         e.preventDefault();
                         const d = new FormData(e.currentTarget);
@@ -1622,7 +1622,7 @@ function AdminView({
                         setShowAddRestockModal(false);
                       }}
                     >
-                      <div className="flex justify-center mb-6">
+                      <div className="flex justify-center mb-4">
                         <div className="relative group">
                           <div className="w-32 h-32 rounded-3xl bg-orange-50 border-2 border-dashed border-orange-200 flex items-center justify-center overflow-hidden" id="restock-preview">
                             <Camera className="text-orange-200" size={32} />
@@ -1654,20 +1654,20 @@ function AdminView({
                           />
                         </div>
                       </div>
-                      <div className="space-y-4">
+                      <div className="space-y-2">
                         <div>
                           <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">부품 이름</label>
                           <input name="partName" required placeholder="예: LEGO Large Motor" className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 bg-slate-50/50 font-bold" />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">카테고리 (신규 등록 시)</label>
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">카테고리</label>
                             <select name="category" className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 bg-slate-50/50 font-bold">
                               {CATEGORIES.map(c => <option key={c}>{c}</option>)}
                             </select>
                           </div>
                           <div>
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">재입고 예정 수량</label>
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">예정 수량</label>
                             <input name="quantity" type="number" required defaultValue="1" className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 bg-slate-50/50 font-bold" />
                           </div>
                         </div>
@@ -1676,7 +1676,7 @@ function AdminView({
                           <textarea name="description" placeholder="재입고 예정 부품에 대한 설명을 입력하세요." className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 bg-slate-50/50 h-24 font-medium" />
                         </div>
                       </div>
-                      <button type="submit" className="w-full bg-orange-500 text-white py-5 rounded-2xl font-black shadow-lg shadow-orange-100 hover:bg-orange-600 transition-all uppercase tracking-widest">소식 등록 완료</button>
+                      <button type="submit" className="w-full bg-orange-500 text-white py-3 rounded-2xl font-black shadow-lg shadow-orange-100 hover:bg-orange-600 transition-all uppercase tracking-widest">소식 등록 완료</button>
                     </form>
                   </motion.div>
                 </div>
