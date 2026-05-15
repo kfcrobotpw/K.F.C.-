@@ -141,6 +141,7 @@ export default function App() {
   const [rentals, setRentals] = useState<Rental[]>([]);
   const [adminLogs, setAdminLogs] = useState<AdminLog[]>([]);
   const [purchaseRequests, setPurchaseRequests] = useState<PurchaseRequest[]>([]);
+  const [restockNews, setRestockNews] = useState<any[]>([]);
   const [showAdminPopup, setShowAdminPopup] = useState(false);
   const [showRentalModal, setShowRentalModal] = useState<{ part: Part } | null>(null);
   const [showAddPartModal, setShowAddPartModal] = useState(false);
@@ -260,6 +261,12 @@ export default function App() {
       handleFirestoreError(error, OperationType.LIST, 'purchase_requests');
     });
 
+    const restockNewsUnsubscribe = onSnapshot(query(collection(db, 'restock_news'), orderBy('createdAt', 'desc')), (snapshot) => {
+      setRestockNews(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'restock_news');
+    });
+
     let logsUnsubscribe = () => {};
     if (isAdminMode && isAdmin) {
       const logsQuery = query(collection(db, 'admin_logs'), orderBy('timestamp', 'desc'));
@@ -274,6 +281,7 @@ export default function App() {
       partsUnsubscribe();
       rentalsUnsubscribe();
       requestsUnsubscribe();
+      restockNewsUnsubscribe();
       logsUnsubscribe();
     };
   }, [user, isAdminMode, isAdmin]);
@@ -442,6 +450,66 @@ export default function App() {
     }
   };
 
+  const handleAddRestockNews = async (formData: any, imageFile: File | null) => {
+    try {
+      let imageUrl = '';
+      if (imageFile) {
+        imageUrl = await compressImage(imageFile);
+      }
+
+      // Add news
+      await addDoc(collection(db, 'restock_news'), {
+        partName: formData.partName,
+        quantity: parseInt(formData.quantity),
+        imageUrl,
+        createdAt: serverTimestamp()
+      });
+
+      // Optionally create or update a part as incoming
+      const existingPart = parts.find(p => p.name === formData.partName);
+      if (existingPart) {
+        await updateDoc(doc(db, 'parts', existingPart.id), {
+          status: 'incoming'
+        });
+      } else {
+        await addDoc(collection(db, 'parts'), {
+          name: formData.partName,
+          category: formData.category,
+          totalStock: 0,
+          availableStock: 0,
+          description: formData.description || '재입고 예정 부품입니다.',
+          imageUrl,
+          status: 'incoming'
+        });
+      }
+      alert("재입고 소식이 등록되었습니다.");
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, 'restock_news');
+    }
+  };
+
+  const handleRestockArrival = async (part: Part, restockQuantity: number) => {
+    try {
+      await updateDoc(doc(db, 'parts', part.id), {
+        status: 'available',
+        totalStock: increment(restockQuantity),
+        availableStock: increment(restockQuantity)
+      });
+      alert("재입고 처리가 완료되었습니다.");
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `parts/${part.id}`);
+    }
+  };
+
+  const handleDeleteRestockNews = async (id: string) => {
+    if (!window.confirm("이 소식을 삭제하시겠습니까?")) return;
+    try {
+      await deleteDoc(doc(db, 'restock_news', id));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `restock_news/${id}`);
+    }
+  };
+
   const handleDeletePurchaseRequest = async (id: string) => {
     if (!window.confirm("정말로 이 요청을 삭제하시겠습니까?")) return;
     try {
@@ -592,6 +660,7 @@ export default function App() {
                   rentals={rentals} 
                   adminLogs={adminLogs}
                   purchaseRequests={purchaseRequests}
+                  restockNews={restockNews}
                   activeTab={adminActiveTab}
                   setActiveTab={setAdminActiveTab}
                   onAddPart={() => setShowAddPartModal(true)}
@@ -599,6 +668,9 @@ export default function App() {
                   onDeletePart={handleDeletePart}
                   onUpdatePurchaseStatus={handleUpdatePurchaseStatus}
                   onDeletePurchaseRequest={handleDeletePurchaseRequest}
+                  onAddRestockNews={handleAddRestockNews}
+                  onRestockArrival={handleRestockArrival}
+                  onDeleteRestockNews={handleDeleteRestockNews}
                 />
               </motion.div>
             ) : (
@@ -612,6 +684,7 @@ export default function App() {
                   parts={filteredParts}
                   rentals={rentals}
                   purchaseRequests={purchaseRequests}
+                  restockNews={restockNews}
                   searchQuery={searchQuery}
                   setSearchQuery={setSearchQuery}
                   selectedCategory={selectedCategory}
@@ -1017,6 +1090,7 @@ function UserView({
   parts, 
   rentals, 
   purchaseRequests,
+  restockNews,
   searchQuery, 
   setSearchQuery, 
   selectedCategory,
@@ -1030,7 +1104,48 @@ function UserView({
   const activeRentals = rentals.filter((r: Rental) => r.status === 'borrowed');
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-12 pb-20">
+      {/* Restock News Section */}
+      {restockNews.length > 0 && (
+        <section className="space-y-6">
+          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center space-x-3">
+              <div className="w-2 h-6 bg-orange-500 rounded-full" />
+              <h3 className="text-xl font-black text-slate-900 tracking-tight">재입고 소식</h3>
+            </div>
+          </div>
+          <div className="flex gap-6 overflow-x-auto no-scrollbar pb-4 -mx-1 px-1">
+            {restockNews.slice(0, 5).map((news: any) => (
+              <motion.div
+                key={news.id}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-white min-w-[280px] md:min-w-[320px] rounded-[2rem] border border-orange-100 shadow-lg shadow-orange-50/50 p-6 flex flex-col gap-4 relative overflow-hidden"
+              >
+                <div className="absolute top-0 right-0 w-24 h-24 bg-orange-50 rounded-full -translate-y-1/2 translate-x-1/2 opacity-50" />
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-2xl bg-orange-50 border border-orange-100 flex items-center justify-center shrink-0 overflow-hidden">
+                    {news.imageUrl ? (
+                      <img src={news.imageUrl} alt={news.partName} className="w-full h-full object-cover" />
+                    ) : (
+                      <Package className="text-orange-200" size={32} />
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="font-black text-slate-900 leading-tight">{news.partName}</h4>
+                    <p className="text-[10px] font-black text-orange-600 uppercase tracking-widest mt-1">곧 재입고 됩니다!</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-wider text-slate-400 mt-2">
+                  <span>수량: {news.quantity}개 예정</span>
+                  <span>{news.createdAt?.toDate().toLocaleDateString()}</span>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Welcome Card & Purchase Link (Compact Version) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-slate-900 rounded-[1.5rem] p-6 text-white relative overflow-hidden shadow-xl flex items-center justify-between">
@@ -1155,10 +1270,16 @@ function UserView({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               whileHover={{ y: -5 }}
-              className="bg-white rounded-[1.5rem] border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-200 transition-all group flex flex-col overflow-hidden"
+              className={`bg-white rounded-[1.5rem] border transition-all group flex flex-col overflow-hidden ${
+                part.status === 'incoming' 
+                ? 'border-orange-400 shadow-[0_0_20px_rgba(251,146,60,0.15)] ring-2 ring-orange-100 ring-offset-2' 
+                : 'border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-200'
+              }`}
             >
               {/* Visual Container */}
-              <div className="h-40 bg-slate-50 relative overflow-hidden flex items-center justify-center border-b border-slate-100">
+              <div className={`h-40 relative overflow-hidden flex items-center justify-center border-b ${
+                part.status === 'incoming' ? 'bg-orange-50/30 border-orange-100' : 'bg-slate-50 border-slate-100'
+              }`}>
                 {part.imageUrl ? (
                   <img 
                     src={part.imageUrl} 
@@ -1174,13 +1295,19 @@ function UserView({
                 
                 {/* Float Badge */}
                 <div className="absolute top-3 right-3">
-                  <div className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest shadow-md backdrop-blur-md ${
-                    part.availableStock > 0 
-                    ? 'bg-green-500/90 text-white' 
-                    : 'bg-red-500/90 text-white'
-                  }`}>
-                    {part.availableStock > 0 ? `재고 ${part.availableStock}` : '품절'}
-                  </div>
+                  {part.status === 'incoming' ? (
+                    <div className="px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest shadow-lg bg-orange-500 text-white animate-pulse">
+                      재입고 예정 확정
+                    </div>
+                  ) : (
+                    <div className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest shadow-md backdrop-blur-md ${
+                      part.availableStock > 0 
+                      ? 'bg-green-500/90 text-white' 
+                      : 'bg-red-500/90 text-white'
+                    }`}>
+                      {part.availableStock > 0 ? `재고 ${part.availableStock}` : '품절'}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1188,8 +1315,8 @@ function UserView({
               <div className="p-4 flex-1 flex flex-col">
                 <div className="mb-4">
                   <div className="flex items-center gap-1.5 mb-1">
-                    <span className="w-1 h-1 rounded-full bg-blue-500" />
-                    <p className="text-[8px] font-black text-blue-600 uppercase tracking-widest">{part.category}</p>
+                    <span className={`w-1 h-1 rounded-full ${part.status === 'incoming' ? 'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]' : 'bg-blue-500'}`} />
+                    <p className={`text-[8px] font-black uppercase tracking-widest ${part.status === 'incoming' ? 'text-orange-600' : 'text-blue-600'}`}>{part.category}</p>
                   </div>
                   <h3 className="text-sm font-black text-slate-900 tracking-tight leading-tight group-hover:text-blue-600 transition-colors uppercase line-clamp-1 mb-1.5">
                     {part.name}
@@ -1203,15 +1330,22 @@ function UserView({
 
                 <div className="mt-auto pt-3 border-t border-slate-50">
                   <button
-                    onClick={() => onRental(part)}
-                    disabled={part.availableStock <= 0}
+                    onClick={() => part.status !== 'incoming' && onRental(part)}
+                    disabled={part.availableStock <= 0 || part.status === 'incoming'}
                     className={`w-full py-2.5 rounded-xl font-black transition-all text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 ${
-                      part.availableStock > 0 
+                      part.status === 'incoming'
+                      ? 'bg-orange-100 text-orange-600 cursor-not-allowed'
+                      : part.availableStock > 0 
                       ? 'bg-slate-900 text-white hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-100 shadow-lg shadow-slate-100' 
                       : 'bg-slate-100 text-slate-300 cursor-not-allowed opacity-60'
                     }`}
                   >
-                    {part.availableStock > 0 ? (
+                    {part.status === 'incoming' ? (
+                      <>
+                        <Clock size={12} />
+                        <span>입고 대기 중</span>
+                      </>
+                    ) : part.availableStock > 0 ? (
                       <>
                         <ArrowRightLeft size={12} />
                         <span>대여 신청</span>
@@ -1241,14 +1375,21 @@ function AdminView({
   rentals, 
   adminLogs, 
   purchaseRequests,
+  restockNews,
   onAddPart,
   onEditPart,
   onDeletePart,
   onUpdatePurchaseStatus,
   onDeletePurchaseRequest,
+  onAddRestockNews,
+  onRestockArrival,
+  onDeleteRestockNews,
   activeTab,
   setActiveTab
 }: any) {
+  const [showAddRestockModal, setShowAddRestockModal] = useState(false);
+  const incomingParts = parts.filter((p: Part) => p.status === 'incoming');
+
   return (
     <div className="space-y-10">
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
@@ -1256,9 +1397,10 @@ function AdminView({
           <h2 className="text-4xl font-black tracking-tight text-slate-900 mb-2">관리자 대시보드</h2>
           <p className="text-slate-500 font-medium tracking-wide">인벤토리를 관리하고 시스템 활동을 모니터링합니다.</p>
         </div>
-        <div className="flex bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200">
+        <div className="flex bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200 overflow-x-auto no-scrollbar">
           {[
             { id: 'inventory', label: '재고 관리', icon: Package },
+            { id: 'restock', label: '재입고 소식', icon: AlertTriangle },
             { id: 'rentals', label: '대여 기록', icon: History },
             { id: 'requests', label: '구매 요청', icon: ShoppingBag },
             { id: 'logs', label: '보안 로그', icon: Users },
@@ -1266,9 +1408,9 @@ function AdminView({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-2 px-5 py-3 text-[10px] font-black uppercase tracking-widest transition-all rounded-[0.85rem] active:scale-95 ${
+              className={`flex items-center gap-2 px-5 py-3 text-[10px] font-black uppercase tracking-widest transition-all rounded-[0.85rem] active:scale-95 whitespace-nowrap ${
                 activeTab === tab.id 
-                ? 'bg-slate-900 text-white shadow-lg' 
+                ? tab.id === 'restock' ? 'bg-orange-500 text-white shadow-lg shadow-orange-100' : 'bg-slate-900 text-white shadow-lg' 
                 : 'text-slate-400 hover:text-slate-600'
               }`}
             >
@@ -1281,7 +1423,51 @@ function AdminView({
 
       <div className="bg-white rounded-[2rem] shadow-xl shadow-slate-200/40 p-10 min-h-[600px] border border-slate-100">
         {activeTab === 'inventory' && (
-          <div className="space-y-10">
+          <div className="space-y-12">
+            {/* Incoming Parts Section */}
+            {incomingParts.length > 0 && (
+              <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-6 bg-orange-500 rounded-full" />
+                  <h3 className="text-xl font-black text-slate-900">재입고 예정 부품 ({incomingParts.length})</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {incomingParts.map((p: Part) => (
+                    <div key={p.id} className="bg-orange-50/50 border border-orange-200 rounded-[2rem] p-6 flex flex-col gap-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 rounded-2xl bg-white border border-orange-100 flex items-center justify-center overflow-hidden shrink-0">
+                          {p.imageUrl ? <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" /> : <ImageIcon className="text-orange-200" size={32} />}
+                        </div>
+                        <div>
+                          <h4 className="font-black text-slate-900">{p.name}</h4>
+                          <p className="text-[10px] font-black text-orange-600 uppercase tracking-widest">{p.category}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <input 
+                          id={`arrival-qty-${p.id}`}
+                          type="number" 
+                          min="1" 
+                          defaultValue="1"
+                          placeholder="수량"
+                          className="w-20 px-3 py-2 rounded-xl border border-orange-200 bg-white font-bold text-sm"
+                        />
+                        <button 
+                          onClick={() => {
+                            const qty = parseInt((document.getElementById(`arrival-qty-${p.id}`) as HTMLInputElement)?.value || '0');
+                            if (qty > 0) onRestockArrival(p, qty);
+                          }}
+                          className="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all"
+                        >
+                          배송 도착 & 입고 완료
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="flex justify-between items-center">
               <h3 className="text-2xl font-black text-slate-900 tracking-tight">전체 재고 현황</h3>
               <button 
@@ -1357,6 +1543,145 @@ function AdminView({
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+
+        {activeTab === 'restock' && (
+          <div className="space-y-10">
+            <div className="flex justify-between items-center">
+              <h3 className="text-2xl font-black text-slate-900 tracking-tight">재입고 소식 관리</h3>
+              <button 
+                onClick={() => setShowAddRestockModal(true)}
+                className="flex items-center gap-3 bg-orange-500 text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-orange-600 shadow-lg shadow-orange-100 transition-all active:scale-95"
+              >
+                <Plus size={18} />
+                소식 추가하기
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {restockNews.map((news: any) => (
+                <div key={news.id} className="bg-white border border-slate-200 rounded-[2rem] p-8 flex items-center justify-between group hover:border-orange-200 transition-all shadow-sm hover:shadow-md">
+                  <div className="flex items-center gap-6">
+                    <div className="w-20 h-20 rounded-2xl bg-orange-50 border border-orange-100 flex items-center justify-center overflow-hidden shrink-0">
+                      {news.imageUrl ? <img src={news.imageUrl} alt={news.partName} className="w-full h-full object-cover" /> : <Package className="text-orange-200" size={32} />}
+                    </div>
+                    <div>
+                      <h4 className="text-xl font-black text-slate-900">{news.partName}</h4>
+                      <div className="flex items-center gap-3 mt-2">
+                        <span className="text-xs font-black text-orange-600 uppercase tracking-widest">{news.quantity}개 예정</span>
+                        <span className="text-[10px] font-bold text-slate-400">{news.createdAt?.toDate().toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => onDeleteRestockNews(news.id)}
+                    className="p-4 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all"
+                  >
+                    <Trash2 size={20} />
+                  </button>
+                </div>
+              ))}
+              {restockNews.length === 0 && (
+                <div className="col-span-full py-24 text-center">
+                  <AlertTriangle size={48} className="mx-auto text-slate-100 mb-6" />
+                  <p className="text-slate-300 font-black uppercase tracking-[0.2em] text-xs">등록된 재입고 소식이 없습니다.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Add Restock Modal */}
+            <AnimatePresence>
+              {showAddRestockModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+                  <motion.div
+                    initial={{ scale: 0.95, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.95, opacity: 0 }}
+                    className="bg-white rounded-[2rem] shadow-2xl max-w-md w-full overflow-hidden border border-slate-200"
+                  >
+                    <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-orange-500 text-white">
+                      <h3 className="text-xl font-black tracking-tight">재입고 소식 추가</h3>
+                      <button onClick={() => setShowAddRestockModal(false)} className="p-2 hover:bg-white/10 rounded-xl transition-all">
+                        <X size={24} />
+                      </button>
+                    </div>
+                    <form 
+                      className="p-8 space-y-6"
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        const d = new FormData(e.currentTarget);
+                        const imageFile = (document.getElementById('restock-image') as HTMLInputElement)?.files?.[0] || null;
+                        
+                        await onAddRestockNews({
+                          partName: d.get('partName'),
+                          category: d.get('category'),
+                          quantity: d.get('quantity'),
+                          description: d.get('description'),
+                        }, imageFile);
+                        setShowAddRestockModal(false);
+                      }}
+                    >
+                      <div className="flex justify-center mb-6">
+                        <div className="relative group">
+                          <div className="w-32 h-32 rounded-3xl bg-orange-50 border-2 border-dashed border-orange-200 flex items-center justify-center overflow-hidden" id="restock-preview">
+                            <Camera className="text-orange-200" size={32} />
+                          </div>
+                          <label 
+                            htmlFor="restock-image"
+                            className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer rounded-3xl text-white font-bold text-xs"
+                          >
+                            이미지/사진 추가
+                          </label>
+                          <input 
+                            id="restock-image" 
+                            type="file" 
+                            accept="image/*" 
+                            className="hidden" 
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onload = (ev) => {
+                                  const preview = document.getElementById('restock-preview');
+                                  if (preview) {
+                                    preview.innerHTML = `<img src="${ev.target?.result}" class="w-full h-full object-cover" />`;
+                                  }
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">부품 이름</label>
+                          <input name="partName" required placeholder="예: LEGO Large Motor" className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 bg-slate-50/50 font-bold" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">카테고리 (신규 등록 시)</label>
+                            <select name="category" className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 bg-slate-50/50 font-bold">
+                              {CATEGORIES.map(c => <option key={c}>{c}</option>)}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">재입고 예정 수량</label>
+                            <input name="quantity" type="number" required defaultValue="1" className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 bg-slate-50/50 font-bold" />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">상세 설명</label>
+                          <textarea name="description" placeholder="재입고 예정 부품에 대한 설명을 입력하세요." className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 bg-slate-50/50 h-24 font-medium" />
+                        </div>
+                      </div>
+                      <button type="submit" className="w-full bg-orange-500 text-white py-5 rounded-2xl font-black shadow-lg shadow-orange-100 hover:bg-orange-600 transition-all uppercase tracking-widest">소식 등록 완료</button>
+                    </form>
+                  </motion.div>
+                </div>
+              )}
+            </AnimatePresence>
           </div>
         )}
 

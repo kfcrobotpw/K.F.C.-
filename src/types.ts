@@ -8,6 +8,15 @@ export interface Part {
   availableStock: number;
   description?: string;
   imageUrl?: string;
+  status?: 'available' | 'incoming';
+}
+
+export interface RestockNews {
+  id: string;
+  partName: string;
+  quantity: number;
+  imageUrl?: string;
+  createdAt: Timestamp;
 }
 
 export interface Rental {

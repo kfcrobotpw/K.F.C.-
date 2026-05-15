@@ -48,7 +48,14 @@ service cloud.firestore {
       return data.get('name', '') is string && 
              data.get('category', '') is string &&
              (data.get('totalStock', 0) is number || data.get('totalStock', '0') is string) &&
-             (data.get('availableStock', 0) is number || data.get('availableStock', '0') is string);
+             (data.get('availableStock', 0) is number || data.get('availableStock', '0') is string) &&
+             (data.get('status', 'available') in ['available', 'incoming']);
+    }
+
+    // --- Restock News Collection ---
+    match /restock_news/{newsId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
     }
 
     // --- Rentals Collection ---

@@ -10,9 +10,22 @@
         "totalStock": { "type": "integer", "description": "Total quantity owned" },
         "availableStock": { "type": "integer", "description": "Current available quantity" },
         "description": { "type": "string", "description": "Brief description" },
-        "imageUrl": { "type": "string", "description": "Optional image URL" }
+        "imageUrl": { "type": "string", "description": "Optional image URL" },
+        "status": { "type": "string", "enum": ["available", "incoming"], "description": "Stock status" }
       },
       "required": ["name", "category", "totalStock", "availableStock"]
+    },
+    "RestockNews": {
+      "title": "Restock News",
+      "description": "Information about upcoming or recent restocks.",
+      "type": "object",
+      "properties": {
+        "partName": { "type": "string" },
+        "quantity": { "type": "integer" },
+        "imageUrl": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["partName", "quantity", "createdAt"]
     },
     "Rental": {
       "title": "Rental Record",
@@ -76,6 +89,10 @@
     "purchase_requests": {
       "schema": "PurchaseRequest",
       "description": "Collection of purchase requests from users."
+    },
+    "restock_news": {
+      "schema": "RestockNews",
+      "description": "Collection of restock announcements."
     }
   }
 }
