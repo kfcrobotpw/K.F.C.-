@@ -146,6 +146,7 @@ export default function App() {
   const [showAddPartModal, setShowAddPartModal] = useState(false);
   const [showEditPartModal, setShowEditPartModal] = useState<Part | null>(null);
   const [showPurchaseRequestModal, setShowPurchaseRequestModal] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('전체');
   const [adminActiveTab, setAdminActiveTab] = useState<'inventory' | 'rentals' | 'logs' | 'requests'>('inventory');
@@ -193,6 +194,12 @@ export default function App() {
                              u.uid === 'HVu4W9gNPYcDWhB6FBgdGyejF2G3';
                              
           setIsAdmin(isAdminUser);
+
+          // Check for tutorial
+          const hasSeenTutorial = localStorage.getItem('kfc_tutorial_seen');
+          if (!hasSeenTutorial) {
+            setShowTutorial(true);
+          }
         } catch (error) {
           console.error("Admin check logic failed:", error);
           setIsAdmin(u.email === 'kfcrobotpw@gmail.com' || u.uid === 'HVu4W9gNPYcDWhB6FBgdGyejF2G3');
@@ -660,6 +667,60 @@ export default function App() {
           </div>
         )}
 
+        {showTutorial && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="bg-white max-w-lg w-full rounded-[2.5rem] shadow-2xl overflow-hidden"
+            >
+              <div className="p-10 space-y-8">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-black shadow-lg shadow-blue-200">?</div>
+                  <div>
+                    <h3 className="text-2xl font-black text-slate-900 tracking-tight">처음 오셨나요?</h3>
+                    <p className="text-slate-500 font-bold text-xs uppercase tracking-widest">K.F.C. 인벤토리 사용법 가이드</p>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="flex gap-4 items-start">
+                    <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-black shrink-0">1</div>
+                    <div>
+                      <h4 className="font-black text-slate-900">부품 검색 및 대여</h4>
+                      <p className="text-sm text-slate-500 font-medium leading-relaxed">라이브러리에서 필요한 부품을 찾아 '대여 신청' 버튼을 누르세요. 성함과 전화번호만 있으면 됩니다.</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-4 items-start">
+                    <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-black shrink-0">2</div>
+                    <div>
+                      <h4 className="font-black text-slate-900">구매 요청</h4>
+                      <p className="text-sm text-slate-500 font-medium leading-relaxed">사용하고 싶은 부품이 동아리에 없다면, 홈 화면 상단의 '요청하기'를 통해 건의할 수 있습니다.</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-4 items-start">
+                    <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-black shrink-0">3</div>
+                    <div>
+                      <h4 className="font-black text-slate-900">대여 현황 확인</h4>
+                      <p className="text-sm text-slate-500 font-medium leading-relaxed">내가 빌린 부품은 홈 화면 중앙에 표시됩니다. 사용 후에는 꼭 '반납하기'를 눌러주세요!</p>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => {
+                    localStorage.setItem('kfc_tutorial_seen', 'true');
+                    setShowTutorial(false);
+                  }}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-5 rounded-2xl font-black transition-all shadow-xl shadow-blue-100 uppercase tracking-widest"
+                >
+                  시스템 시작하기
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
         {/* Purchase Request Modal */}
         {showPurchaseRequestModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
@@ -1015,9 +1076,9 @@ function UserView({
 
       {/* Search Header */}
       <div ref={libraryRef} className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-        <div>
-          <h2 className="text-4xl font-black tracking-tight text-slate-900 mb-2">부품 라이브러리</h2>
-          <p className="text-slate-500 font-medium">로봇 제작에 필요한 부품을 찾아보세요.</p>
+        <div className="min-w-0">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight text-slate-900 mb-2 truncate">부품 라이브러리</h2>
+          <p className="text-slate-500 font-medium text-sm md:text-base">로봇 제작에 필요한 부품을 찾아보세요.</p>
         </div>
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap gap-2">
