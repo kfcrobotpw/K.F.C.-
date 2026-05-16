@@ -711,29 +711,29 @@ export default function App() {
               exit={{ scale: 0.95, opacity: 0 }}
               className="bg-white w-[400px] rounded-[2rem] shadow-2xl overflow-hidden border border-slate-200"
             >
-              <div className="p-6 flex flex-col items-center text-center">
-                <div className="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-4xl mb-4 shadow-inner shadow-red-200/50">⚠️</div>
-                <h3 className="text-2xl font-black text-slate-900 mb-4 tracking-tight">관리자 접근 보안</h3>
-                <p className="text-slate-600 leading-relaxed mb-6 text-sm">
+              <div className="p-4 flex flex-col items-center text-center">
+                <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-3xl mb-2 shadow-inner shadow-red-200/50">⚠️</div>
+                <h3 className="text-xl font-black text-slate-900 mb-2 tracking-tight">관리자 접근 보안</h3>
+                <p className="text-slate-600 leading-relaxed mb-4 text-xs">
                   관리자 버튼은 실제 관리자만 누를 수 있습니다.<br />
                   <span className="font-bold text-red-600 underline underline-offset-4 decoration-2">접속 시 계정 정보({user.email})가 시스템에 전송됩니다.</span>
                 </p>
-                <div className="flex space-x-3 w-full">
+                <div className="flex space-x-2 w-full">
                   <button
                     onClick={() => setShowAdminPopup(false)}
-                    className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all"
+                    className="flex-1 py-2.5 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all text-sm"
                   >
                     취소
                   </button>
                   <button
                     onClick={handleAdminAccess}
-                    className="flex-1 py-4 bg-red-600 text-white rounded-2xl font-bold hover:bg-red-700 transition-all shadow-lg shadow-red-200"
+                    className="flex-1 py-2.5 bg-red-600 text-white rounded-2xl font-bold hover:bg-red-700 transition-all shadow-lg shadow-red-200 text-sm"
                   >
                     확인 및 접속
                   </button>
                 </div>
               </div>
-              <div className="bg-slate-50 px-6 py-3 border-t border-slate-100 text-[10px] text-slate-400 font-bold tracking-widest text-center uppercase">
+              <div className="bg-slate-50 px-4 py-2 border-t border-slate-100 text-[10px] text-slate-400 font-bold tracking-widest text-center uppercase">
                 보안 프로토콜 활성화됨 • 세션 ID: KFC-{user.uid.slice(0, 5)}
               </div>
             </motion.div>
@@ -747,35 +747,35 @@ export default function App() {
               animate={{ scale: 1, opacity: 1 }}
               className="bg-white max-w-sm w-full rounded-[2.5rem] shadow-2xl overflow-hidden"
             >
-              <div className="p-6 space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-black shadow-lg shadow-blue-200">?</div>
+              <div className="p-5 space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-black shadow-lg shadow-blue-200">?</div>
                   <div>
-                    <h3 className="text-2xl font-black text-slate-900 tracking-tight">처음 오셨나요?</h3>
-                    <p className="text-slate-500 font-bold text-xs uppercase tracking-widest">K.F.C. 인벤토리 사용법 가이드</p>
+                    <h3 className="text-xl font-black text-slate-900 tracking-tight">처음 오셨나요?</h3>
+                    <p className="text-slate-500 font-bold text-[8px] uppercase tracking-widest">K.F.C. 가이드</p>
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <div className="flex gap-4 items-start">
-                    <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-black shrink-0">1</div>
+                <div className="space-y-2">
+                  <div className="flex gap-3 items-start">
+                    <div className="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] font-black shrink-0">1</div>
                     <div>
-                      <h4 className="font-black text-slate-900">부품 검색 및 대여</h4>
-                      <p className="text-sm text-slate-500 font-medium leading-relaxed">라이브러리에서 필요한 부품을 찾아 '대여 신청' 버튼을 누르세요. 성함과 전화번호만 있으면 됩니다.</p>
+                      <h4 className="font-black text-slate-900 text-xs text-sm">부품 검색 및 대여</h4>
+                      <p className="text-xs text-slate-500 font-medium leading-tight">필요한 부품을 찾아 '대여 신청' 하세요.</p>
                     </div>
                   </div>
-                  <div className="flex gap-4 items-start">
-                    <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-black shrink-0">2</div>
+                  <div className="flex gap-3 items-start">
+                    <div className="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] font-black shrink-0">2</div>
                     <div>
-                      <h4 className="font-black text-slate-900">구매 요청</h4>
-                      <p className="text-sm text-slate-500 font-medium leading-relaxed">사용하고 싶은 부품이 동아리에 없다면, 홈 화면 상단의 '요청하기'를 통해 건의할 수 있습니다.</p>
+                      <h4 className="font-black text-slate-900 text-xs">구매 요청</h4>
+                      <p className="text-xs text-slate-500 font-medium leading-tight">원하는 부품을 요청할 수 있습니다.</p>
                     </div>
                   </div>
-                  <div className="flex gap-4 items-start">
-                    <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-black shrink-0">3</div>
+                  <div className="flex gap-3 items-start">
+                    <div className="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] font-black shrink-0">3</div>
                     <div>
-                      <h4 className="font-black text-slate-900">대여 현황 확인</h4>
-                      <p className="text-sm text-slate-500 font-medium leading-relaxed">내가 빌린 부품은 홈 화면 중앙에 표시됩니다. 사용 후에는 꼭 '반납하기'를 눌러주세요!</p>
+                      <h4 className="font-black text-slate-900 text-xs">대여 현황</h4>
+                      <p className="text-xs text-slate-500 font-medium leading-tight">사용 후에는 꼭 '반납하기' 해주세요!</p>
                     </div>
                   </div>
                 </div>
@@ -785,7 +785,7 @@ export default function App() {
                     localStorage.setItem('kfc_tutorial_seen', 'true');
                     setShowTutorial(false);
                   }}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-2xl font-black transition-all shadow-xl shadow-blue-100 uppercase tracking-widest"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-2xl font-black transition-all shadow-xl shadow-blue-100 uppercase tracking-widest text-xs"
                 >
                   시스템 시작하기
                 </button>
@@ -803,14 +803,14 @@ export default function App() {
               exit={{ scale: 0.95, opacity: 0 }}
               className="bg-white rounded-[2rem] shadow-2xl max-w-sm w-full overflow-hidden border border-slate-200"
             >
-              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-blue-600 text-white">
-                <h3 className="text-xl font-black tracking-tight">구매 요청 작성</h3>
-                <button onClick={() => setShowPurchaseRequestModal(false)} className="p-2 hover:bg-white/10 rounded-xl transition-all">
-                  <X size={24} />
+              <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-blue-600 text-white">
+                <h3 className="text-lg font-black tracking-tight">구매 요청 작성</h3>
+                <button onClick={() => setShowPurchaseRequestModal(false)} className="p-1.5 hover:bg-white/10 rounded-xl transition-all">
+                  <X size={20} />
                 </button>
               </div>
               <form 
-                className="p-5 space-y-3"
+                className="p-4 space-y-2"
                 onSubmit={(e) => {
                   e.preventDefault();
                   const d = new FormData(e.currentTarget);
@@ -837,10 +837,10 @@ export default function App() {
                   </div>
                   <div>
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">요청 사유</label>
-                    <textarea name="reason" placeholder="로봇 팔 관절 보완을 위해 필요합니다." className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 h-24 font-medium" />
+                    <textarea name="reason" placeholder="요청 사유를 입력하세요." className="w-full px-5 py-2 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 h-16 font-medium text-sm" />
                   </div>
                 </div>
-                <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded-2xl font-black shadow-lg hover:bg-blue-700 transition-all uppercase tracking-widest">요청 제출하기</button>
+                <button type="submit" className="w-full bg-blue-600 text-white py-2.5 rounded-2xl font-black shadow-lg hover:bg-blue-700 transition-all uppercase tracking-widest text-xs">요청 제출하기</button>
               </form>
             </motion.div>
           </div>
@@ -855,14 +855,14 @@ export default function App() {
               exit={{ scale: 0.95, opacity: 0 }}
               className="bg-white rounded-[2rem] shadow-2xl max-w-sm w-full overflow-hidden border border-slate-200"
             >
-              <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-blue-600 text-white">
-                <h3 className="text-xl font-black tracking-tight">대여: {showRentalModal.part.name}</h3>
-                <button onClick={() => setShowRentalModal(null)} className="p-2 hover:bg-white/10 rounded-xl transition-all">
-                  <X size={24} />
+              <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-blue-600 text-white">
+                <h3 className="text-lg font-black tracking-tight truncate">대여: {showRentalModal.part.name}</h3>
+                <button onClick={() => setShowRentalModal(null)} className="p-1.5 hover:bg-white/10 rounded-xl transition-all">
+                  <X size={20} />
                 </button>
               </div>
               <form 
-                className="p-6"
+                className="p-5"
                 onSubmit={(e) => {
                   e.preventDefault();
                   const d = new FormData(e.currentTarget);
@@ -908,7 +908,7 @@ export default function App() {
 
                 <button
                   type="submit"
-                  className="w-full mt-6 bg-blue-600 text-white py-3 rounded-2xl font-black shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all uppercase tracking-widest"
+                  className="w-full mt-4 bg-blue-600 text-white py-2.5 rounded-2xl font-black shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all uppercase tracking-widest text-xs"
                 >
                   대여 신청
                 </button>
@@ -926,14 +926,14 @@ export default function App() {
               exit={{ scale: 0.95, opacity: 0 }}
               className="bg-white rounded-[2rem] shadow-2xl max-w-sm w-full overflow-hidden border border-slate-200"
             >
-              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-blue-600 text-white">
-                <h3 className="text-xl font-black tracking-tight">부품 정보 수정</h3>
-                <button onClick={() => setShowEditPartModal(null)} className="p-2 hover:bg-white/10 rounded-xl transition-all">
-                  <X size={24} />
+              <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-blue-600 text-white">
+                <h3 className="text-lg font-black tracking-tight">부품 정보 수정</h3>
+                <button onClick={() => setShowEditPartModal(null)} className="p-1.5 hover:bg-white/10 rounded-xl transition-all">
+                  <X size={20} />
                 </button>
               </div>
               <form 
-                className="p-5 space-y-3"
+                className="p-4 space-y-2"
                 onSubmit={async (e) => {
                   e.preventDefault();
                   const d = new FormData(e.currentTarget);
@@ -948,49 +948,48 @@ export default function App() {
                   }, imageFile);
                 }}
               >
-                <div className="flex justify-center mb-4">
+                <div className="flex justify-center mb-2">
                   <div className="relative group">
-                    <div className="w-32 h-32 rounded-3xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden">
+                    <div className="w-24 h-24 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden">
                       {showEditPartModal.imageUrl ? (
                         <img src={showEditPartModal.imageUrl} alt="Part" className="w-full h-full object-cover" />
                       ) : (
-                        <Camera className="text-slate-300" size={32} />
+                        <Camera className="text-slate-300" size={24} />
                       )}
                     </div>
                     <label 
                       htmlFor="edit-image"
-                      className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer rounded-3xl text-white font-bold text-xs"
+                      className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer rounded-2xl text-white font-bold text-[10px]"
                     >
-                      변경하기
+                      변경
                     </label>
                     <input id="edit-image" type="file" accept="image/*" className="hidden" />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2">
                   <div className="col-span-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">부품 이름</label>
-                    <input name="name" required defaultValue={showEditPartModal.name} className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 font-bold" />
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-0.5 px-1">부품 이름</label>
+                    <input name="name" required defaultValue={showEditPartModal.name} className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 font-bold text-sm" />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">카테고리</label>
-                    <select name="category" defaultValue={showEditPartModal.category} className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 font-bold">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-0.5 px-1">카테고리</label>
+                    <select name="category" defaultValue={showEditPartModal.category} className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 font-bold text-sm">
                       {CATEGORIES.map(c => <option key={c}>{c}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">전체 재고수량</label>
-                    <input name="totalStock" type="number" required defaultValue={showEditPartModal.totalStock} className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 font-bold" />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">잔여 재고수량</label>
-                    <input name="availableStock" type="number" required defaultValue={showEditPartModal.availableStock} className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 font-bold" />
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-0.5 px-1">전체/잔여</label>
+                    <div className="flex gap-1">
+                      <input name="totalStock" type="number" required defaultValue={showEditPartModal.totalStock} className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 font-bold text-sm" />
+                      <input name="availableStock" type="number" required defaultValue={showEditPartModal.availableStock} className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 font-bold text-sm" />
+                    </div>
                   </div>
                   <div className="col-span-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">상세 설명 / 스펙</label>
-                    <textarea name="description" defaultValue={showEditPartModal.description} className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 h-28 font-medium" />
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-0.5 px-1">상세 설명</label>
+                    <textarea name="description" defaultValue={showEditPartModal.description} className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 h-16 font-medium text-sm" />
                   </div>
                 </div>
-                <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded-2xl font-black shadow-lg hover:bg-blue-700 transition-all uppercase tracking-widest">저장하기</button>
+                <button type="submit" className="w-full bg-blue-600 text-white py-2.5 rounded-xl font-black shadow-lg hover:bg-blue-700 transition-all uppercase tracking-widest text-xs">저장하기</button>
               </form>
             </motion.div>
           </div>
@@ -1003,14 +1002,14 @@ export default function App() {
               exit={{ scale: 0.95, opacity: 0 }}
               className="bg-white rounded-[2rem] shadow-2xl max-w-sm w-full overflow-hidden border border-slate-200"
             >
-              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-900 text-white">
-                <h3 className="text-xl font-black tracking-tight">새 부품 등록</h3>
-                <button onClick={() => setShowAddPartModal(false)} className="p-2 hover:bg-white/10 rounded-xl transition-all">
-                  <X size={24} />
+              <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-900 text-white">
+                <h3 className="text-lg font-black tracking-tight">새 부품 등록</h3>
+                <button onClick={() => setShowAddPartModal(false)} className="p-1.5 hover:bg-white/10 rounded-xl transition-all">
+                  <X size={20} />
                 </button>
               </div>
               <form 
-                className="p-5 space-y-3"
+                className="p-4 space-y-2"
                 onSubmit={async (e) => {
                   e.preventDefault();
                   const d = new FormData(e.currentTarget);
@@ -1024,14 +1023,14 @@ export default function App() {
                   }, imageFile);
                 }}
               >
-                <div className="flex justify-center mb-4">
+                <div className="flex justify-center mb-2">
                   <div className="relative group">
-                    <div className="w-32 h-32 rounded-3xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden" id="add-image-preview">
-                      <Camera className="text-slate-300" size={32} />
+                    <div className="w-24 h-24 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden" id="add-image-preview">
+                      <Camera className="text-slate-300" size={24} />
                     </div>
                     <label 
                       htmlFor="add-image"
-                      className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer rounded-3xl text-white font-bold text-xs"
+                      className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer rounded-2xl text-white font-bold text-[10px]"
                     >
                       이미지 선택
                     </label>
@@ -1056,27 +1055,27 @@ export default function App() {
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2">
                   <div className="col-span-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">부품 이름</label>
-                    <input name="name" required className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 font-bold" />
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-0.5 px-1">부품 이름</label>
+                    <input name="name" required className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 font-bold text-sm" />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">카테고리</label>
-                    <select name="category" className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 font-bold">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-0.5 px-1">카테고리</label>
+                    <select name="category" className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 font-bold text-sm">
                       {CATEGORIES.map(c => <option key={c}>{c}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">초기 재고</label>
-                    <input name="totalStock" type="number" required defaultValue="1" className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 font-bold" />
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-0.5 px-1">초기 재고</label>
+                    <input name="totalStock" type="number" required defaultValue="1" className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 font-bold text-sm" />
                   </div>
                   <div className="col-span-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">상세 설명 / 스펙</label>
-                    <textarea name="description" className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 h-28 font-medium" />
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-0.5 px-1">상세 설명</label>
+                    <textarea name="description" className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-slate-50/50 h-16 font-medium text-sm" />
                   </div>
                 </div>
-                <button type="submit" className="w-full bg-slate-900 text-white py-3 rounded-2xl font-black shadow-lg hover:bg-slate-800 transition-all uppercase tracking-widest">부품 등록 완료</button>
+                <button type="submit" className="w-full bg-slate-900 text-white py-2.5 rounded-xl font-black shadow-lg hover:bg-slate-800 transition-all uppercase tracking-widest text-xs">부품 등록 완료</button>
               </form>
             </motion.div>
           </div>
@@ -1600,14 +1599,14 @@ function AdminView({
                     exit={{ scale: 0.95, opacity: 0 }}
                     className="bg-white rounded-[2rem] shadow-2xl max-w-sm w-full overflow-hidden border border-slate-200"
                   >
-                    <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-orange-500 text-white">
-                      <h3 className="text-xl font-black tracking-tight">재입고 소식 추가</h3>
-                      <button onClick={() => setShowAddRestockModal(false)} className="p-2 hover:bg-white/10 rounded-xl transition-all">
-                        <X size={24} />
+                    <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-orange-500 text-white">
+                      <h3 className="text-lg font-black tracking-tight">재입고 소식 추가</h3>
+                      <button onClick={() => setShowAddRestockModal(false)} className="p-1.5 hover:bg-white/10 rounded-xl transition-all">
+                        <X size={20} />
                       </button>
                     </div>
                     <form 
-                      className="p-5 space-y-3"
+                      className="p-4 space-y-2"
                       onSubmit={async (e) => {
                         e.preventDefault();
                         const d = new FormData(e.currentTarget);
@@ -1622,16 +1621,16 @@ function AdminView({
                         setShowAddRestockModal(false);
                       }}
                     >
-                      <div className="flex justify-center mb-4">
+                      <div className="flex justify-center mb-2">
                         <div className="relative group">
-                          <div className="w-32 h-32 rounded-3xl bg-orange-50 border-2 border-dashed border-orange-200 flex items-center justify-center overflow-hidden" id="restock-preview">
-                            <Camera className="text-orange-200" size={32} />
+                          <div className="w-24 h-24 rounded-2xl bg-orange-50 border-2 border-dashed border-orange-200 flex items-center justify-center overflow-hidden" id="restock-preview">
+                            <Camera className="text-orange-200" size={24} />
                           </div>
                           <label 
                             htmlFor="restock-image"
-                            className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer rounded-3xl text-white font-bold text-xs"
+                            className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer rounded-2xl text-white font-bold text-[10px]"
                           >
-                            이미지/사진 추가
+                            이미지 추가
                           </label>
                           <input 
                             id="restock-image" 
@@ -1656,27 +1655,27 @@ function AdminView({
                       </div>
                       <div className="space-y-2">
                         <div>
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">부품 이름</label>
-                          <input name="partName" required placeholder="예: LEGO Large Motor" className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 bg-slate-50/50 font-bold" />
+                          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-0.5 px-1">부품 이름</label>
+                          <input name="partName" required placeholder="예: LEGO Large Motor" className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 bg-slate-50/50 font-bold text-sm" />
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-2">
                           <div>
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">카테고리</label>
-                            <select name="category" className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 bg-slate-50/50 font-bold">
+                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-0.5 px-1">카테고리</label>
+                            <select name="category" className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 bg-slate-50/50 font-bold text-sm">
                               {CATEGORIES.map(c => <option key={c}>{c}</option>)}
                             </select>
                           </div>
                           <div>
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">예정 수량</label>
-                            <input name="quantity" type="number" required defaultValue="1" className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 bg-slate-50/50 font-bold" />
+                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-0.5 px-1">예정 수량</label>
+                            <input name="quantity" type="number" required defaultValue="1" className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 bg-slate-50/50 font-bold text-sm" />
                           </div>
                         </div>
                         <div>
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">상세 설명</label>
-                          <textarea name="description" placeholder="재입고 예정 부품에 대한 설명을 입력하세요." className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 bg-slate-50/50 h-24 font-medium" />
+                          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-0.5 px-1">상세 설명</label>
+                          <textarea name="description" placeholder="설명을 입력하세요." className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 bg-slate-50/50 h-16 font-medium text-sm" />
                         </div>
                       </div>
-                      <button type="submit" className="w-full bg-orange-500 text-white py-3 rounded-2xl font-black shadow-lg shadow-orange-100 hover:bg-orange-600 transition-all uppercase tracking-widest">소식 등록 완료</button>
+                      <button type="submit" className="w-full bg-orange-500 text-white py-2.5 rounded-xl font-black shadow-lg shadow-orange-100 hover:bg-orange-600 transition-all uppercase tracking-widest text-xs">소식 등록 완료</button>
                     </form>
                   </motion.div>
                 </div>
