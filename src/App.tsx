@@ -241,9 +241,7 @@ export default function App() {
       handleFirestoreError(error, OperationType.LIST, 'parts');
     });
 
-    const rentalsQuery = isAdminMode 
-      ? query(collection(db, 'rentals'), orderBy('borrowedAt', 'desc'))
-      : query(collection(db, 'rentals'), where('userId', '==', user.uid), orderBy('borrowedAt', 'desc'));
+    const rentalsQuery = query(collection(db, 'rentals'), orderBy('borrowedAt', 'desc'));
 
     const rentalsUnsubscribe = onSnapshot(rentalsQuery, (snapshot) => {
       setRentals(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Rental)));
@@ -694,6 +692,8 @@ export default function App() {
                   onRequestPurchase={() => setShowPurchaseRequestModal(true)}
                   rentalsRef={rentalsRef}
                   libraryRef={libraryRef}
+                  user={user}
+                  isAdmin={isAdmin}
                 />
               </motion.div>
             )}
@@ -1098,7 +1098,9 @@ function UserView({
   onReturn,
   onRequestPurchase,
   rentalsRef,
-  libraryRef
+  libraryRef,
+  user,
+  isAdmin
 }: any) {
   const activeRentals = rentals.filter((r: Rental) => r.status === 'borrowed');
 
@@ -1227,27 +1229,44 @@ function UserView({
         <section ref={rentalsRef} className="space-y-6">
           <div className="flex items-center space-x-3 px-1">
             <div className="w-2 h-6 bg-red-600 rounded-full" />
-            <h3 className="text-xl font-black text-slate-900 tracking-tight">나의 대여 현황</h3>
+            <h3 className="text-xl font-black text-slate-900 tracking-tight">대여 현황</h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {activeRentals.map((rental: Rental) => (
               <motion.div
                 key={rental.id}
                 layout
-                className="bg-white border-2 border-red-50 rounded-3xl p-6 shadow-sm flex items-center justify-between"
+                className="bg-white border-2 border-red-50 rounded-3xl p-5 shadow-sm flex flex-col justify-between gap-4"
               >
-                <div>
-                  <h4 className="font-bold text-slate-900 mb-1">{rental.partName} ({rental.quantity || 1}개)</h4>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                    대여일: {rental.borrowedAt?.toDate().toLocaleDateString()}
-                  </p>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <h4 className="font-extrabold text-slate-900 text-base line-clamp-2">{rental.partName}</h4>
+                    <span className="px-2.5 py-1 bg-red-100 text-red-600 rounded-xl text-xs font-black shrink-0">
+                      {rental.quantity || 1}개
+                    </span>
+                  </div>
+                  <div className="pt-2 border-t border-slate-100 space-y-1.5 text-xs text-slate-500 font-bold">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-slate-400 font-medium text-[11px] uppercase tracking-wider">대여자:</span>
+                      <span className="text-slate-800 font-black">{rental.userName || '미입력'}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-slate-400 font-medium text-[11px] uppercase tracking-wider">연락처:</span>
+                      <span className="text-slate-800 font-black">{rental.userPhone || '미입력'}</span>
+                    </div>
+                    <div className="text-[10px] text-slate-400 pt-1">
+                      대여일: {rental.borrowedAt?.toDate().toLocaleDateString()}
+                    </div>
+                  </div>
                 </div>
-                <button
-                  onClick={() => onReturn(rental)}
-                  className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-xs font-black rounded-xl hover:bg-slate-800 transition-all shadow-lg"
-                >
-                  반납하기
-                </button>
+                {user && (rental.userId === user.uid || isAdmin) && (
+                  <button
+                    onClick={() => onReturn(rental)}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-red-600 text-white text-xs font-black rounded-xl transition-all shadow-md active:scale-95"
+                  >
+                    반납하기
+                  </button>
+                )}
               </motion.div>
             ))}
           </div>
