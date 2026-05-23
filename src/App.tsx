@@ -151,6 +151,7 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('전체');
   const [adminActiveTab, setAdminActiveTab] = useState<'inventory' | 'rentals' | 'logs' | 'requests'>('inventory');
+  const [userActiveTab, setUserActiveTab] = useState<'library' | 'rentals'>('library');
 
   // Refs for scrolling
   const rentalsRef = useRef<HTMLDivElement>(null);
@@ -161,6 +162,7 @@ export default function App() {
       setAdminActiveTab('rentals');
     } else {
       setIsAdminMode(false);
+      setUserActiveTab('rentals');
       setTimeout(() => {
         rentalsRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
@@ -169,6 +171,7 @@ export default function App() {
 
   const scrollToLibrary = () => {
     setIsAdminMode(false);
+    setUserActiveTab('library');
     setTimeout(() => {
       libraryRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, 100);
@@ -617,16 +620,16 @@ export default function App() {
             <p className="text-[10px] uppercase tracking-wider text-slate-400 font-black mb-4">네비게이션</p>
             <button 
               onClick={scrollToLibrary}
-              className={`w-full flex items-center space-x-3 p-3 rounded-xl font-bold transition-all active:scale-95 ${!isAdminMode ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:bg-slate-50'}`}
+              className={`w-full flex items-center space-x-3 p-3 rounded-xl font-bold transition-all active:scale-95 ${!isAdminMode && userActiveTab === 'library' ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:bg-slate-50'}`}
             >
-              <div className={`w-2 h-2 rounded-full ${!isAdminMode ? 'bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.4)]' : 'bg-slate-300'}`} />
+              <div className={`w-2 h-2 rounded-full ${!isAdminMode && userActiveTab === 'library' ? 'bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.4)]' : 'bg-slate-300'}`} />
               <span>부품 라이브러리</span>
             </button>
             <button 
               onClick={scrollToRentals}
-              className={`w-full flex items-center space-x-3 p-3 rounded-xl font-bold transition-all active:scale-95 ${isAdminMode && adminActiveTab === 'rentals' ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:bg-slate-50'}`}
+              className={`w-full flex items-center space-x-3 p-3 rounded-xl font-bold transition-all active:scale-95 ${(isAdminMode && adminActiveTab === 'rentals') || (!isAdminMode && userActiveTab === 'rentals') ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:bg-slate-50'}`}
             >
-              <div className={`w-2 h-2 rounded-full ${isAdminMode && adminActiveTab === 'rentals' ? 'bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.4)]' : 'bg-slate-300'}`} />
+              <div className={`w-2 h-2 rounded-full ${(isAdminMode && adminActiveTab === 'rentals') || (!isAdminMode && userActiveTab === 'rentals') ? 'bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.4)]' : 'bg-slate-300'}`} />
               <span>대여 현황</span>
             </button>
           </nav>
@@ -694,6 +697,8 @@ export default function App() {
                   libraryRef={libraryRef}
                   user={user}
                   isAdmin={isAdmin}
+                  userActiveTab={userActiveTab}
+                  setUserActiveTab={setUserActiveTab}
                 />
               </motion.div>
             )}
@@ -1091,299 +1096,345 @@ function UserView({
   purchaseRequests,
   restockNews,
   searchQuery, 
-  setSearchQuery, 
+  setSearchQuery,
   selectedCategory,
   setSelectedCategory,
-  onRental, 
+  onRental,
   onReturn,
   onRequestPurchase,
   rentalsRef,
   libraryRef,
   user,
-  isAdmin
+  isAdmin,
+  userActiveTab,
+  setUserActiveTab
 }: any) {
   const activeRentals = rentals.filter((r: Rental) => r.status === 'borrowed');
 
   return (
     <div className="space-y-12 pb-20">
-      {/* Restock News Section */}
-      {restockNews.length > 0 && (
-        <section className="space-y-6">
-          <div className="flex items-center justify-between px-1">
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-6 bg-orange-500 rounded-full" />
-              <h3 className="text-xl font-black text-slate-900 tracking-tight">재입고 소식</h3>
-            </div>
-          </div>
-          <div className="flex gap-6 overflow-x-auto no-scrollbar pb-4 -mx-1 px-1">
-            {restockNews.slice(0, 5).map((news: any) => (
-              <motion.div
-                key={news.id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-white min-w-[280px] md:min-w-[320px] rounded-[2rem] border border-orange-100 shadow-lg shadow-orange-50/50 p-6 flex flex-col gap-4 relative overflow-hidden"
-              >
-                <div className="absolute top-0 right-0 w-24 h-24 bg-orange-50 rounded-full -translate-y-1/2 translate-x-1/2 opacity-50" />
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl bg-orange-50 border border-orange-100 flex items-center justify-center shrink-0 overflow-hidden">
-                    {news.imageUrl ? (
-                      <img src={news.imageUrl} alt={news.partName} className="w-full h-full object-cover" />
-                    ) : (
-                      <Package className="text-orange-200" size={32} />
-                    )}
-                  </div>
-                  <div>
-                    <h4 className="font-black text-slate-900 leading-tight">{news.partName}</h4>
-                    <p className="text-[10px] font-black text-orange-600 uppercase tracking-widest mt-1">곧 재입고 됩니다!</p>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-wider text-slate-400 mt-2">
-                  <span>수량: {news.quantity}개 예정</span>
-                  <span>{news.createdAt?.toDate().toLocaleDateString()}</span>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Welcome Card & Purchase Link (Compact Version) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-slate-900 rounded-[1.5rem] p-6 text-white relative overflow-hidden shadow-xl flex items-center justify-between">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-red-600 rounded-full mix-blend-multiply filter blur-3xl opacity-10 -translate-y-1/2 translate-x-1/2" />
-          <div className="relative z-10">
-            <h2 className="text-lg font-black tracking-tight">필요한 부품이 없나요?</h2>
-            <p className="text-slate-400 font-medium text-[11px] mt-1">구매 요청을 통해 부품을 건의해보세요.</p>
-          </div>
-          <button 
-            onClick={onRequestPurchase}
-            className="relative z-10 flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white px-4 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 whitespace-nowrap shadow-lg shadow-red-900/20"
-          >
-            <ShoppingBag size={14} />
-            요청하기
-          </button>
-        </div>
-        
-        <div className="bg-white rounded-[1.5rem] p-6 border border-slate-200 shadow-sm flex items-center justify-between">
-          <div className="flex-1">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">나의 최근 요청</p>
-            <div className="flex gap-4 overflow-x-auto no-scrollbar pb-1">
-              {purchaseRequests.slice(0, 2).map((req: PurchaseRequest) => (
-                <div key={req.id} className="flex items-center gap-2 shrink-0">
-                  <span className="font-bold text-slate-700 text-xs truncate max-w-[80px]">{req.itemName}</span>
-                  <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase ${
-                    req.status === 'pending' ? 'bg-orange-50 text-orange-600' :
-                    req.status === 'approved' ? 'bg-green-50 text-green-600' :
-                    'bg-red-50 text-red-600'
-                  }`}>
-                    {req.status === 'pending' ? '대기' : req.status === 'approved' ? '승인' : '거절'}
-                  </span>
-                </div>
-              ))}
-              {purchaseRequests.length === 0 && <p className="text-[10px] text-slate-300 font-medium">내역 없음</p>}
-            </div>
-          </div>
-          <div className="text-right ml-4">
-            <p className="text-[18px] font-black text-slate-900 leading-none">{purchaseRequests.length}</p>
-            <p className="text-[8px] font-black text-blue-600 uppercase tracking-widest mt-1">총 요청</p>
-          </div>
-        </div>
+      {/* Tab Navigation for Mobile & Main Content */}
+      <div className="flex bg-slate-100 p-1 rounded-2xl max-w-sm mb-6">
+        <button
+          onClick={() => setUserActiveTab('library')}
+          className={`flex-1 py-2.5 text-xs font-black tracking-wider uppercase rounded-xl transition-all ${
+            userActiveTab === 'library'
+              ? 'bg-white text-slate-900 shadow-md'
+              : 'text-slate-400 hover:text-slate-600'
+          }`}
+        >
+          부품 라이브러리
+        </button>
+        <button
+          onClick={() => setUserActiveTab('rentals')}
+          className={`flex-1 py-2.5 text-xs font-black tracking-wider uppercase rounded-xl transition-all ${
+            userActiveTab === 'rentals'
+              ? 'bg-white text-slate-900 shadow-md'
+              : 'text-slate-400 hover:text-slate-600'
+          }`}
+        >
+          대여 현황 ({activeRentals.length})
+        </button>
       </div>
 
-      {/* Search Header */}
-      <div ref={libraryRef} className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-        <div className="min-w-0">
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight text-slate-900 mb-2 truncate">부품 라이브러리</h2>
-          <p className="text-slate-500 font-medium text-sm md:text-base">로봇 제작에 필요한 부품을 찾아보세요.</p>
-        </div>
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-wrap gap-2">
-            {['전체', ...CATEGORIES].map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                  selectedCategory === cat 
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-100' 
-                  : 'bg-white text-slate-400 border border-slate-200 hover:border-blue-200 hover:text-slate-600'
-                }`}
+      {userActiveTab === 'library' ? (
+        <>
+          {/* Restock News Section */}
+          {restockNews.length > 0 && (
+            <section className="space-y-6">
+              <div className="flex items-center justify-between px-1">
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-6 bg-orange-500 rounded-full" />
+                  <h3 className="text-xl font-black text-slate-900 tracking-tight">재입고 소식</h3>
+                </div>
+              </div>
+              <div className="flex gap-6 overflow-x-auto no-scrollbar pb-4 -mx-1 px-1">
+                {restockNews.slice(0, 5).map((news: any) => (
+                  <motion.div
+                    key={news.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-white min-w-[280px] md:min-w-[320px] rounded-[2rem] border border-orange-100 shadow-lg shadow-orange-50/50 p-6 flex flex-col gap-4 relative overflow-hidden"
+                  >
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-orange-50 rounded-full -translate-y-1/2 translate-x-1/2 opacity-50" />
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-2xl bg-orange-50 border border-orange-100 flex items-center justify-center shrink-0 overflow-hidden">
+                        {news.imageUrl ? (
+                          <img src={news.imageUrl} alt={news.partName} className="w-full h-full object-cover" />
+                        ) : (
+                          <Package className="text-orange-200" size={32} />
+                        )}
+                      </div>
+                      <div>
+                        <h4 className="font-black text-slate-900 leading-tight">{news.partName}</h4>
+                        <p className="text-[10px] font-black text-orange-600 uppercase tracking-widest mt-1">곧 재입고 됩니다!</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-wider text-slate-400 mt-2">
+                      <span>수량: {news.quantity}개 예정</span>
+                      <span>{news.createdAt?.toDate().toLocaleDateString()}</span>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Welcome Card & Purchase Link (Compact Version) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="bg-slate-900 rounded-[1.5rem] p-6 text-white relative overflow-hidden shadow-xl flex items-center justify-between">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-red-600 rounded-full mix-blend-multiply filter blur-3xl opacity-10 -translate-y-1/2 translate-x-1/2" />
+              <div className="relative z-10">
+                <h2 className="text-lg font-black tracking-tight">필요한 부품이 없나요?</h2>
+                <p className="text-slate-400 font-medium text-[11px] mt-1">구매 요청을 통해 부품을 건의해보세요.</p>
+              </div>
+              <button 
+                onClick={onRequestPurchase}
+                className="relative z-10 flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white px-4 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 whitespace-nowrap shadow-lg shadow-red-900/20"
               >
-                {cat}
+                <ShoppingBag size={14} />
+                요청하기
               </button>
-            ))}
+            </div>
+            
+            <div className="bg-white rounded-[1.5rem] p-6 border border-slate-200 shadow-sm flex items-center justify-between">
+              <div className="flex-1">
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">나의 최근 요청</p>
+                <div className="flex gap-4 overflow-x-auto no-scrollbar pb-1">
+                  {purchaseRequests.slice(0, 2).map((req: PurchaseRequest) => (
+                    <div key={req.id} className="flex items-center gap-2 shrink-0">
+                      <span className="font-bold text-slate-700 text-xs truncate max-w-[80px]">{req.itemName}</span>
+                      <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase ${
+                        req.status === 'pending' ? 'bg-orange-50 text-orange-600' :
+                        req.status === 'approved' ? 'bg-green-50 text-green-600' :
+                        'bg-red-50 text-red-600'
+                      }`}>
+                        {req.status === 'pending' ? '대기' : req.status === 'approved' ? '승인' : '거절'}
+                      </span>
+                    </div>
+                  ))}
+                  {purchaseRequests.length === 0 && <p className="text-[10px] text-slate-300 font-medium">내역 없음</p>}
+                </div>
+              </div>
+              <div className="text-right ml-4">
+                <p className="text-[18px] font-black text-slate-900 leading-none">{purchaseRequests.length}</p>
+                <p className="text-[8px] font-black text-blue-600 uppercase tracking-widest mt-1">총 요청</p>
+              </div>
+            </div>
           </div>
-          <div className="relative w-full lg:w-96">
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-            <input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-14 pr-6 py-4 bg-white border border-slate-200 rounded-[1.25rem] outline-none shadow-sm focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 transition-all font-bold text-slate-700"
-              placeholder="부품 검색..."
-            />
-          </div>
-        </div>
-      </div>
 
-      {/* My Rentals Section */}
-      {activeRentals.length > 0 && (
+          {/* Search Header */}
+          <div ref={libraryRef} className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+            <div className="min-w-0">
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight text-slate-900 mb-2 truncate">부품 라이브러리</h2>
+              <p className="text-slate-500 font-medium text-sm md:text-base">로봇 제작에 필요한 부품을 찾아보세요.</p>
+            </div>
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-wrap gap-2">
+                {['전체', ...CATEGORIES].map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                      selectedCategory === cat 
+                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-100' 
+                      : 'bg-white text-slate-400 border border-slate-200 hover:border-blue-200 hover:text-slate-600'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+              <div className="relative w-full lg:w-96">
+                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                <input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-14 pr-6 py-4 bg-white border border-slate-200 rounded-[1.25rem] outline-none shadow-sm focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 transition-all font-bold text-slate-700"
+                  placeholder="부품 검색..."
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Part Grid */}
+          <section className="space-y-6 pb-20">
+            <div className="flex items-center space-x-3 px-1">
+              <div className="w-2 h-6 bg-blue-600 rounded-full" />
+              <h3 className="text-xl font-black text-slate-900 tracking-tight">
+                {selectedCategory === '전체' ? '모든 부품' : selectedCategory}
+              </h3>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+              {parts.map((part: Part) => (
+                <motion.div
+                  key={part.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  whileHover={{ y: -5 }}
+                  className={`bg-white rounded-[1.5rem] border transition-all group flex flex-col overflow-hidden ${
+                    part.status === 'incoming' 
+                    ? 'border-orange-400 shadow-[0_0_20px_rgba(251,146,60,0.15)] ring-2 ring-orange-100 ring-offset-2' 
+                    : 'border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-200'
+                  }`}
+                >
+                  {/* Visual Container */}
+                  <div className={`h-40 relative overflow-hidden flex items-center justify-center border-b ${
+                    part.status === 'incoming' ? 'bg-orange-50/30 border-orange-100' : 'bg-slate-50 border-slate-100'
+                  }`}>
+                    {part.imageUrl ? (
+                      <img 
+                        src={part.imageUrl} 
+                        alt={part.name} 
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center gap-2 text-slate-200">
+                        <ImageIcon size={32} strokeWidth={1.5} />
+                        <span className="text-[8px] font-black uppercase tracking-[0.2em]">{part.category}</span>
+                      </div>
+                    )}
+                    
+                    {/* Float Badge */}
+                    <div className="absolute top-3 right-3">
+                      {part.status === 'incoming' ? (
+                        <div className="px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest shadow-lg bg-orange-500 text-white animate-pulse">
+                          재입고 예정 확정
+                        </div>
+                      ) : (
+                        <div className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest shadow-md backdrop-blur-md ${
+                          part.availableStock > 0 
+                          ? 'bg-green-500/90 text-white' 
+                          : 'bg-red-500/90 text-white'
+                        }`}>
+                          {part.availableStock > 0 ? `재고 ${part.availableStock}` : '품절'}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Info Container */}
+                  <div className="p-4 flex-1 flex flex-col">
+                    <div className="mb-4">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <span className={`w-1 h-1 rounded-full ${part.status === 'incoming' ? 'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]' : 'bg-blue-500'}`} />
+                        <p className={`text-[8px] font-black uppercase tracking-widest ${part.status === 'incoming' ? 'text-orange-600' : 'text-blue-600'}`}>{part.category}</p>
+                      </div>
+                      <h3 className="text-sm font-black text-slate-900 tracking-tight leading-tight group-hover:text-blue-600 transition-colors uppercase line-clamp-1 mb-1.5">
+                        {part.name}
+                      </h3>
+                      <div className="min-h-[2.5rem]">
+                        <p className="text-[11px] text-slate-500 font-medium leading-relaxed line-clamp-2">
+                          {part.description || '상세 설명 없음'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-auto pt-3 border-t border-slate-50">
+                      <button
+                        onClick={() => part.status !== 'incoming' && onRental(part)}
+                        disabled={part.availableStock <= 0 || part.status === 'incoming'}
+                        className={`w-full py-2.5 rounded-xl font-black transition-all text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 ${
+                          part.status === 'incoming'
+                          ? 'bg-orange-100 text-orange-600 cursor-not-allowed'
+                          : part.availableStock > 0 
+                          ? 'bg-slate-900 text-white hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-100 shadow-lg shadow-slate-100' 
+                          : 'bg-slate-100 text-slate-300 cursor-not-allowed opacity-60'
+                        }`}
+                      >
+                        {part.status === 'incoming' ? (
+                          <>
+                            <Clock size={12} />
+                            <span>입고 대기 중</span>
+                          </>
+                        ) : part.availableStock > 0 ? (
+                          <>
+                            <ArrowRightLeft size={12} />
+                            <span>대여 신청</span>
+                          </>
+                        ) : (
+                          <span>품절</span>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+              {parts.length === 0 && (
+                <div className="col-span-full py-32 text-center bg-white border border-slate-200 rounded-[2rem] shadow-inner shadow-slate-100">
+                  <Package size={48} className="mx-auto text-slate-200 mb-6" />
+                  <p className="text-slate-400 font-black uppercase tracking-widest text-xs">검색 결과가 없습니다.</p>
+                </div>
+              )}
+            </div>
+          </section>
+        </>
+      ) : (
+        /* My Rentals Section */
         <section ref={rentalsRef} className="space-y-6">
           <div className="flex items-center space-x-3 px-1">
             <div className="w-2 h-6 bg-red-600 rounded-full" />
             <h3 className="text-xl font-black text-slate-900 tracking-tight">대여 현황</h3>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {activeRentals.map((rental: Rental) => (
-              <motion.div
-                key={rental.id}
-                layout
-                className="bg-white border-2 border-red-50 rounded-3xl p-5 shadow-sm flex flex-col justify-between gap-4"
-              >
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <h4 className="font-extrabold text-slate-900 text-base line-clamp-2">{rental.partName}</h4>
-                    <span className="px-2.5 py-1 bg-red-100 text-red-600 rounded-xl text-xs font-black shrink-0">
-                      {rental.quantity || 1}개
-                    </span>
+          {activeRentals.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {activeRentals.map((rental: Rental) => (
+                <motion.div
+                  key={rental.id}
+                  layout
+                  className="bg-white border-2 border-red-50 rounded-3xl p-5 shadow-sm flex flex-col justify-between gap-4"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <h4 className="font-extrabold text-slate-900 text-base line-clamp-2">{rental.partName}</h4>
+                      <span className="px-2.5 py-1 bg-red-100 text-red-600 rounded-xl text-xs font-black shrink-0">
+                        {rental.quantity || 1}개
+                      </span>
+                    </div>
+                    <div className="pt-2 border-t border-slate-100 space-y-1.5 text-xs text-slate-500 font-bold">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-slate-400 font-medium text-[11px] uppercase tracking-wider">대여자:</span>
+                        <span className="text-slate-800 font-black">{rental.userName || '미입력'}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-slate-400 font-medium text-[11px] uppercase tracking-wider">연락처:</span>
+                        <span className="text-slate-800 font-black">{rental.userPhone || '미입력'}</span>
+                      </div>
+                      <div className="text-[10px] text-slate-400 pt-1">
+                        대여일: {rental.borrowedAt?.toDate().toLocaleDateString()}
+                      </div>
+                    </div>
                   </div>
-                  <div className="pt-2 border-t border-slate-100 space-y-1.5 text-xs text-slate-500 font-bold">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-slate-400 font-medium text-[11px] uppercase tracking-wider">대여자:</span>
-                      <span className="text-slate-800 font-black">{rental.userName || '미입력'}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-slate-400 font-medium text-[11px] uppercase tracking-wider">연락처:</span>
-                      <span className="text-slate-800 font-black">{rental.userPhone || '미입력'}</span>
-                    </div>
-                    <div className="text-[10px] text-slate-400 pt-1">
-                      대여일: {rental.borrowedAt?.toDate().toLocaleDateString()}
-                    </div>
-                  </div>
-                </div>
-                {user && (rental.userId === user.uid || isAdmin) && (
-                  <button
-                    onClick={() => onReturn(rental)}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-red-600 text-white text-xs font-black rounded-xl transition-all shadow-md active:scale-95"
-                  >
-                    반납하기
-                  </button>
-                )}
-              </motion.div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Part Grid */}
-      <section className="space-y-6 pb-20">
-        <div className="flex items-center space-x-3 px-1">
-          <div className="w-2 h-6 bg-blue-600 rounded-full" />
-          <h3 className="text-xl font-black text-slate-900 tracking-tight">
-            {selectedCategory === '전체' ? '모든 부품' : selectedCategory}
-          </h3>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
-          {parts.map((part: Part) => (
-            <motion.div
-              key={part.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              whileHover={{ y: -5 }}
-              className={`bg-white rounded-[1.5rem] border transition-all group flex flex-col overflow-hidden ${
-                part.status === 'incoming' 
-                ? 'border-orange-400 shadow-[0_0_20px_rgba(251,146,60,0.15)] ring-2 ring-orange-100 ring-offset-2' 
-                : 'border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-200'
-              }`}
-            >
-              {/* Visual Container */}
-              <div className={`h-40 relative overflow-hidden flex items-center justify-center border-b ${
-                part.status === 'incoming' ? 'bg-orange-50/30 border-orange-100' : 'bg-slate-50 border-slate-100'
-              }`}>
-                {part.imageUrl ? (
-                  <img 
-                    src={part.imageUrl} 
-                    alt={part.name} 
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-                  />
-                ) : (
-                  <div className="flex flex-col items-center gap-2 text-slate-200">
-                    <ImageIcon size={32} strokeWidth={1.5} />
-                    <span className="text-[8px] font-black uppercase tracking-[0.2em]">{part.category}</span>
-                  </div>
-                )}
-                
-                {/* Float Badge */}
-                <div className="absolute top-3 right-3">
-                  {part.status === 'incoming' ? (
-                    <div className="px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest shadow-lg bg-orange-500 text-white animate-pulse">
-                      재입고 예정 확정
-                    </div>
-                  ) : (
-                    <div className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest shadow-md backdrop-blur-md ${
-                      part.availableStock > 0 
-                      ? 'bg-green-500/90 text-white' 
-                      : 'bg-red-500/90 text-white'
-                    }`}>
-                      {part.availableStock > 0 ? `재고 ${part.availableStock}` : '품절'}
-                    </div>
+                  {user && (rental.userId === user.uid || isAdmin) && (
+                    <button
+                      onClick={() => onReturn(rental)}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-red-600 text-white text-xs font-black rounded-xl transition-all shadow-md active:scale-95"
+                    >
+                      반납하기
+                    </button>
                   )}
-                </div>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-20 bg-white border border-slate-200 rounded-[2.5rem] p-8 text-center shadow-sm">
+              <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl mb-4">
+                <ArrowRightLeft size={24} />
               </div>
-
-              {/* Info Container */}
-              <div className="p-4 flex-1 flex flex-col">
-                <div className="mb-4">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <span className={`w-1 h-1 rounded-full ${part.status === 'incoming' ? 'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]' : 'bg-blue-500'}`} />
-                    <p className={`text-[8px] font-black uppercase tracking-widest ${part.status === 'incoming' ? 'text-orange-600' : 'text-blue-600'}`}>{part.category}</p>
-                  </div>
-                  <h3 className="text-sm font-black text-slate-900 tracking-tight leading-tight group-hover:text-blue-600 transition-colors uppercase line-clamp-1 mb-1.5">
-                    {part.name}
-                  </h3>
-                  <div className="min-h-[2.5rem]">
-                    <p className="text-[11px] text-slate-500 font-medium leading-relaxed line-clamp-2">
-                      {part.description || '상세 설명 없음'}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-auto pt-3 border-t border-slate-50">
-                  <button
-                    onClick={() => part.status !== 'incoming' && onRental(part)}
-                    disabled={part.availableStock <= 0 || part.status === 'incoming'}
-                    className={`w-full py-2.5 rounded-xl font-black transition-all text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 ${
-                      part.status === 'incoming'
-                      ? 'bg-orange-100 text-orange-600 cursor-not-allowed'
-                      : part.availableStock > 0 
-                      ? 'bg-slate-900 text-white hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-100 shadow-lg shadow-slate-100' 
-                      : 'bg-slate-100 text-slate-300 cursor-not-allowed opacity-60'
-                    }`}
-                  >
-                    {part.status === 'incoming' ? (
-                      <>
-                        <Clock size={12} />
-                        <span>입고 대기 중</span>
-                      </>
-                    ) : part.availableStock > 0 ? (
-                      <>
-                        <ArrowRightLeft size={12} />
-                        <span>대여 신청</span>
-                      </>
-                    ) : (
-                      <span>품절</span>
-                    )}
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-          {parts.length === 0 && (
-            <div className="col-span-full py-32 text-center bg-white border border-slate-200 rounded-[2rem] shadow-inner shadow-slate-100">
-              <Package size={48} className="mx-auto text-slate-200 mb-6" />
-              <p className="text-slate-400 font-black uppercase tracking-widest text-xs">검색 결과가 없습니다.</p>
+              <h3 className="text-xl font-black text-slate-900 mb-2">대여 중인 부품이 없습니다</h3>
+              <p className="text-slate-500 font-medium text-sm max-w-sm mb-6">
+                현재 전산에 대여 중인 부품이 없습니다. 부품 라이브러리에서 필요한 부품을 대여해 보세요!
+              </p>
+              <button 
+                onClick={() => setUserActiveTab('library')}
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl transition-all shadow-lg shadow-blue-100 uppercase tracking-widest"
+              >
+                부품 보러가기
+              </button>
             </div>
           )}
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 }
