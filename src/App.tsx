@@ -891,6 +891,9 @@ export default function App() {
                   <div>
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">전화번호</label>
                     <input 
+                      type="tel"
+                      inputMode="numeric"
+                      pattern="[0-9\-]*"
                       name="phone"
                       required
                       placeholder="010-1234-5678"
